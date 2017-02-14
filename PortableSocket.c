@@ -6,7 +6,7 @@
  *      Author: Jonathon Davis
  */
 
-#include "../../CustomPortable/PortableSocket.h"
+#include "PortableSocket.h"
 
 //private functions
 struct PortableSocket * newTCPSocket(char * address, int port);
