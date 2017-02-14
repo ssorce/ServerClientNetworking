@@ -1,4 +1,6 @@
+#include "stdio.h"
 #include "CustomPortable/PortableSocket.h"
+#include "CustomPortable/source/PortableSocket.c"
 
 int main(){
 	cpOpenNetwork();
