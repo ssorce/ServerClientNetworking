@@ -134,7 +134,21 @@ int cpConnect(struct PortableSocket * socket){
  * The second parameter will be the message that is being transmitted.
  */
 int cpSend(struct PortableSocket * socket, char* message, int messageSize){
-	socket->error = send(socket->socket, message, messageSize,0);
+	char *buffer = message;
+	int length = messageSize;
+	int i, flags = 0;
+	while(messageSize > 0)
+	{
+		if(messageSize <= 0)
+			break;
+		i = send(socket->socket, buffer, length, flags);
+		if(i != 0)
+			break;
+		buffer += i;
+		length -= i;
+	}
+
+	socket->error = i;
 	return cpCheckError(socket);
 }
 
