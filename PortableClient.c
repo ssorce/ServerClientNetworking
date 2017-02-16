@@ -11,7 +11,7 @@ int main(int argc, char *argv[]){
 	char message[256];
 	cpRecv(socket,message,256);
 	len = strlen(message);
-	while(cpCheckError(socket) == 0)
+	while(cpCheckError(socket) == 0 || feof(stdin))
 	{
 		if(len == 0)
 			break;
