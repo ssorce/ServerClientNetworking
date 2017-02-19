@@ -160,7 +160,7 @@ int cpSend(struct PortableSocket * socket, char* message, int messageSize){
  */
 int cpRecv(struct PortableSocket * socket, char* message, int bufferSize){
 	socket->error = recv(socket->socket, message, bufferSize,0);
-	return cpCheckError(socket);
+	return (socket->error < 0)?cpCheckError(socket):socket->error;
 }
 
 /*
