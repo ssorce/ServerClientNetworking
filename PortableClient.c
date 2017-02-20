@@ -13,10 +13,11 @@ int main(int argc, char *argv[]){
 	//collect the message from stdin
 	while(fgets(message, size, stdin) != NULL && cpCheckError(socket) == 0)
 	{
-		if(*message == '\n')
-			break;
+		if(*message != '\n')
+		{
 			//send the message without the newline or null charcter
-		cpSend(socket, message, strlen(message)-1);
+			cpSend(socket, message, strlen(message)-1);
+		}
 	}
 	//close the network
 	cpClose(socket);

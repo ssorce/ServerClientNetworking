@@ -16,7 +16,7 @@ int main(int argc, char *argv[]){
 	//connect to the client
 	struct PortableSocket* client = cpAccept(socket);
 	//print out what the client sends
-	while(cpCheckError(client) == 0 || feof(stdin))
+	while(cpCheckError(client) == 0)
 	{
 		len = cpRecv(client,message,size);
 		if(len == 0)
