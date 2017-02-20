@@ -1,6 +1,8 @@
 # ServerClientNetworking
 CS425
 Names: Jonathon Davis and Scott Sorce
+Emails: davisj4@email.arizona.edu and ssorce@email.arizona.edu
+
 
 Deadlines
 
