@@ -39,6 +39,9 @@ The client should keep reading from stdin line by line, sends one line at a time
 Deliverables: 
 Source files client.c and server.c, and Makefile that will produce binaries “client” and “server”.
 
+
+
+
 Milestone 2: Implement TCP proxy programs
 
 Get familiar with telnet, which will be used to test your programs. Run telnet on ClientVM to log into ServerVM: 
@@ -47,7 +50,8 @@ telnet sip
 
 where sip is ServerVM’s eth1 IP address. After successful login, you should get a regular Unix shell session. 
 
-For this milestone, you will implement a client-side proxy (“cproxy) and a server-side proxy (“sproxy) that will relay traffic between the telnet program and telnet daemon. The specific actions to implement are as follows.
+For this milestone, you will implement a client-side proxy (“cproxy) and a server-side proxy (“sproxy) that will relay traffic between the telnet program and telnet daemon.
+The specific actions to implement are as follows.
 
 
 
@@ -63,18 +67,29 @@ On ClientVM, telnet to cproxy:
 
 telnet localhost 5200
 
-The above command will have telnet open a TCP connection with cproxy. After accepting the connection, cproxy should open a TCP connection to sproxy. Upon accepting this connection, sproxy should open a TCP connection to the telnet daemon on localhost (address 127.0.0.1, port 23). Now, as shown in the above figure, cproxy and sproxy connect telnet and telnet daemon via three TCP connections. 
+The above command will have telnet open a TCP connection with cproxy. After accepting the connection, cproxy should open a TCP connection to sproxy. 
+Upon accepting this connection, sproxy should open a TCP connection to the telnet daemon on localhost (address 127.0.0.1, port 23). 
+Now, as shown in the above figure, cproxy and sproxy connect telnet and telnet daemon via three TCP connections. 
 
-In order for telnet to work, cproxy and sproxy should relay traffic received from one side to the other side. For example, cproxy has two connected sockets. It should wait for incoming data on both sockets. If either one receives some data, cproxy should read them from the socket, and send them to the other socket. Similarly, sproxy should operate the same way. Since both proxies merely relay data between their sockets, from user’s point of view, telnet should just work the same way as if it directly connects to the daemon, e.g., type a Unix command and get results displayed on the terminal. Your cproxy and sproxy should implement the relay functionality to achieve this goal. 
+In order for telnet to work, cproxy and sproxy should relay traffic received from one side to the other side. 
+For example, cproxy has two connected sockets. It should wait for incoming data on both sockets. If either one receives some data, 
+cproxy should read them from the socket, and send them to the other socket. Similarly, sproxy should operate the same way. 
+Since both proxies merely relay data between their sockets, from user’s point of view, telnet should just work the same way as if it directly connects to the daemon, 
+e.g., type a Unix command and get results displayed on the terminal. Your cproxy and sproxy should implement the relay functionality to achieve this goal. 
 
 One technical question is, how do cproxy and sproxy wait for input from two sockets at the same time? You’ll need select( ) for this. See Select for how to use select( ).
 
-Another required feature is the closing behavior. When the user closes the telnet session, e.g., typing “exit”, “logout”, or ctrl-d, cproxy should close both of its connections, and sproxy should do so too. If recv( ) returns 0 or -1, it means the socket has been closed by the peer or it has an error. In either case the socket should be closed.
-
-To isolate problems when debugging the programs, you can run telnet---cproxy---daemon first to debug cproxy, then telnet---sproxy---daemon to debug sproxy, and finally put them together as telnet---cproxy---sproxy---daemon and test.
+Another required feature is the closing behavior. When the user closes the telnet session, e.g., typing “exit”, “logout”, or ctrl-d, cproxy should close both of its 
+connections, and sproxy should do so too. If recv( ) returns 0 or -1, it means the socket has been closed by the peer or it has an error. 
+In either case the socket should be closed.
+To isolate problems when debugging the programs, you can run telnet---cproxy---daemon first to debug cproxy, then telnet---sproxy---daemon to debug sproxy, 
+and finally put them together as telnet---cproxy---sproxy---daemon and test.
 
 Deliverables: 
 Source files cproxy.c and sproxy.c, and Makefile that will produce binaries “cproxy” and “sproxy”.
+
+
+	
 
 Milestone 3: Detecting and handling address changes
 
