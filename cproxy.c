@@ -13,15 +13,17 @@
 #include <math.h>
 #include <PortableSocket.h>
 
-int main(int argc, char * argv[])
+int main(int argc, char *argv[])
 {
-	if (argc == 4)
-	{
+    if (argc == 4)
+    {
 		int ServerPort = atoi(argv[3]); // Server Port
-		// SIP (Server IP)
 		int ClientPort = atoi(argv[1]); // Client Port
+		cpOpenNetwork();
+		struct PortableSocket *socket = cpSocket(TCP, argv[2], ServerPort); // TCP SIP ServerPort
+		cpConnect(socket);
 		return 0;
-	}
-	else
+    }
+    else
 		return 1;
 }
