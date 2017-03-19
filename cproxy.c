@@ -5,25 +5,55 @@
 * telnet localhost 5200
 */
 
-// I just grabbed normal *.h, but we can delete them after
-
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
 #include <math.h>
 #include <PortableSocket.h>
 
-int main(int argc, char *argv[])
-{
-    if (argc == 4)
-    {
-		int ServerPort = atoi(argv[3]); // Server Port
-		int ClientPort = atoi(argv[1]); // Client Port
-		cpOpenNetwork();
-		struct PortableSocket *socket = cpSocket(TCP, argv[2], ServerPort); // TCP SIP ServerPort
-		cpConnect(socket);
-		return 0;
-    }
-    else
-		return 1;
+int main(int argc, char *argv[]){
+    if (argc != 4)
+      return 1;
+
+    /*
+    * Parse the inputs
+    */
+    int clientPort = atoi(argv[1]);
+    char* serverAddress = argv[2];
+    int serverPort = atoi(argv[3]);
+
+    /*
+    * Open the network
+    */
+    cpOpenNetwork();
+
+    /*
+    * Connection to the local telnet
+    */
+  	struct PortableSocket* telnetAcceptorSocket = cpSocket(TCP, "127.0.0.1", clientPort);
+    cpBind(socket);
+    cpListen(socket,1);
+    struct PortableSocket* telnetSocket = cpAccept(socket);
+
+    /*
+    * Create connection to sproxy
+    */
+    struct PortableSocket* sproxySocket = cpSocket(TCP,serverAddress,serverPort);
+    cpConnect(socket);
+
+    /*
+    * Foward data from one port to another
+    */
+    while(cpCheckError(client) == 0) {
+      //todo use select() to switch data from one socket to another
+  	}
+
+    /*
+    * Close the connections
+    */
+    cpClose(telnetAcceptorSocket);
+    cpClose(telnetSocket);
+    cpClose(sproxySocket);
+  	cpCloseNetwork();
+  	return 0;
 }
