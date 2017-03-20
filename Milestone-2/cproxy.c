@@ -5,11 +5,9 @@
 * telnet localhost 5200
 */
 
-#include <stdio.h>
-#include <string.h>
-#include <stdlib.h>
-#include <math.h>
-#include <PortableSocket.h>
+#include "PortableSocket.h"
+#include <sys/select.h>
+#define size 1024
 
 int main(int argc, char *argv[]){
     if (argc != 4)
@@ -31,21 +29,37 @@ int main(int argc, char *argv[]){
     * Connection to the local telnet
     */
   	struct PortableSocket* telnetAcceptorSocket = cpSocket(TCP, "127.0.0.1", clientPort);
-    cpBind(socket);
-    cpListen(socket,1);
-    struct PortableSocket* telnetSocket = cpAccept(socket);
+    cpBind(telnetAcceptorSocket);
+    cpListen(telnetAcceptorSocket,1);
+    struct PortableSocket* telnetSocket = cpAccept(telnetAcceptorSocket);
 
     /*
     * Create connection to sproxy
     */
     struct PortableSocket* sproxySocket = cpSocket(TCP,serverAddress,serverPort);
-    cpConnect(socket);
+    cpConnect(sproxySocket);
 
     /*
     * Foward data from one port to another
     */
-    while(cpCheckError(client) == 0) {
-      //todo use select() to switch data from one socket to another
+    fd_set readfds;
+    FD_ZERO(&readfds);
+    FD_SET(telnetSocket->socket, &readfds);
+    FD_SET(sproxySocket->socket, &readfds);
+    int n = sproxySocket->socket + 1;
+    char message[size];
+    while(cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0) {
+      if(select(n, &readfds, NULL, NULL, NULL) <= 0)
+        break;
+      // foward the message
+      if(FD_ISSET(telnetSocket->socket, &readfds)){
+        cpRecv(telnetSocket,message,size);
+        cpSend(sproxySocket,message,size);
+      }
+      if(FD_ISSET(sproxySocket->socket, &readfds)){
+        cpRecv(sproxySocket,message,size);
+        cpSend(telnetSocket,message,size);
+      }
   	}
 
     /*
