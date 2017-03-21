@@ -25,15 +25,15 @@ int main(int argc, char *argv[])
   /*
   * Connection to the client proxy
   */
-  struct PortableSocket* clientAcceptor = cpSocket(TCP,"localhost", atoi(argv[1]));
+  struct PortableSocket *clientAcceptor = cpSocket(TCP, "localhost", atoi(argv[1]));
   cpBind(clientAcceptor);
-  cpListen(clientAcceptor,1);
-  struct PortableSocket* clientProxy = cpAccept(clientAcceptor);
+  cpListen(clientAcceptor, 1);
+  struct PortableSocket *clientProxy = cpAccept(clientAcceptor);
 
   /*
   * Connection to the local telnet
   */
-  struct PortableSocket *telnetSocket = cpSocket(TCP, "localhost", 23);
+  struct PortableSocket *telnetSocket = cpSocket(TCP, "127.0.0.1", 23);
   cpConnect(telnetSocket);
 
   /*
@@ -41,27 +41,28 @@ int main(int argc, char *argv[])
   */
   fd_set readfds;
   FD_ZERO(&readfds);
-  FD_SET(telnetSocket->socket, &readfds);
   FD_SET(clientProxy->socket, &readfds);
-  int n = clientProxy->socket + 1;
+  FD_SET(telnetSocket->socket, &readfds);
+  int n = telnetSocketProxy->socket + 1;
   char message[size];
-  
-  while(cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0) {
-    if(select(n, &readfds, NULL, NULL, NULL) <= 0)
+  while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
+  {
+    if (select(n, &readfds, NULL, NULL, NULL) <= 0)
       break;
     // foward the message
-    if(FD_ISSET(telnetSocket->socket, &readfds)){
+    if (FD_ISSET(telnetSocket->socket, &readfds))
+    {
       // print "recieved from telnet 'message' sending to sproxy"
-      cpRecv(telnetSocket,message,size);
+      cpRecv(telnetSocket, message, size);
       printf("Recieved from telnet: '%s'\n", message);
-      cpSend(clientProxy,message,size);
+      cpSend(clientProxy, message, size);
     }
-    if(FD_ISSET(clientProxy->socket, &readfds)){
+    if (FD_ISSET(clientProxy->socket, &readfds))
+    {
       // print "recieved from telnet 'message' sending to cproxy"
-      cpRecv(clientProxy,message,size);
-       printf("clienetProxy from telnet: '%s'\n", message);
-     int i =  cpSend(telnetSocket,message,size);
-     printf("i: %d\n", i);
+      cpRecv(clientProxy, message, size);
+      printf("Recieved from telnet: '%s'\n", message);
+      cpSend(telnetSocket, message, size);
     }
   }
 
