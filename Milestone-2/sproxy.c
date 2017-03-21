@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
   printf("looping server\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, NULL) <= 0)
+    if (select(n, &readfds, NULL, NULL, 2000) <= 0)
       break;
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
