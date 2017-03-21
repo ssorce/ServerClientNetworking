@@ -22,6 +22,7 @@ int main(int argc, char *argv[])
   */
   cpOpenNetwork();
 
+  printf("connecting: client\n");
   /*
   * Connection to the client proxy
   */
@@ -29,13 +30,13 @@ int main(int argc, char *argv[])
   cpBind(clientAcceptor);
   cpListen(clientAcceptor, 1);
   struct PortableSocket *clientProxy = cpAccept(clientAcceptor);
-
+  printf("connecting: telnet\n");
   /*
   * Connection to the local telnet
   */
   struct PortableSocket *telnetSocket = cpSocket(TCP, "localhost", 23);
   cpConnect(telnetSocket);
-
+  printf("connected\n");
   /*
   * Foward data from one port to another
   */
