@@ -43,7 +43,7 @@ int main(int argc, char *argv[])
   FD_ZERO(&readfds);
   FD_SET(clientProxy->socket, &readfds);
   FD_SET(telnetSocket->socket, &readfds);
-  int n = telnetSocketProxy->socket + 1;
+  int n = telnetSocket->socket + 1;
   char message[size];
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
