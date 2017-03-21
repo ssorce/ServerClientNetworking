@@ -25,7 +25,7 @@ int main(int argc, char *argv[])
     * Open the network
     */
   cpOpenNetwork();
-
+  printf("connecting: telnet (client)\n");
   /*
     * Connection to the local telnet
     */
@@ -33,13 +33,13 @@ int main(int argc, char *argv[])
   cpBind(telnetAcceptorSocket);
   cpListen(telnetAcceptorSocket, 1);
   struct PortableSocket *telnetSocket = cpAccept(telnetAcceptorSocket);
-
+  printf("connecting: sproxy (client)\n");
   /*
     * Create connection to sproxy
     */
   struct PortableSocket *sproxySocket = cpSocket(TCP, serverAddress, serverPort);
   cpConnect(sproxySocket);
-
+  printf("connected\n");
   /*
     * Foward data from one port to another
     */
