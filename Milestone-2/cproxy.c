@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   /*
     * Connection to the local telnet
     */
-  struct PortableSocket *telnetAcceptorSocket = cpSocket(TCP, "localhost", clientPort);
+  struct PortableSocket *telnetAcceptorSocket = cpSocket(TCP, "127.0.0.1", clientPort);
   printf("here\n");
   cpBind(telnetAcceptorSocket);
   printf("okay\n");
