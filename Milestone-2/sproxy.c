@@ -50,11 +50,15 @@ int main(int argc, char *argv[])
       break;
     // foward the message
     if(FD_ISSET(telnetSocket->socket, &readfds)){
+      // print "recieved from telnet 'message' sending to sproxy"
       cpRecv(telnetSocket,message,size);
+      printf("Recieved from telnet: '%s'\n", message);
       cpSend(clientProxy,message,size);
     }
     if(FD_ISSET(clientProxy->socket, &readfds)){
+      // print "recieved from telnet 'message' sending to cproxy"
       cpRecv(clientProxy,message,size);
+       printf("clienetProxy from telnet: '%s'\n", message);
       cpSend(telnetSocket,message,size);
     }
   }
