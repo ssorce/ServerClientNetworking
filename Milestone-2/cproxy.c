@@ -33,7 +33,7 @@ int main(int argc, char *argv[])
   printf("here\n");
   cpBind(telnetAcceptorSocket);
   printf("okay\n");
-  cpListen(telnetAcceptorSocket, 1);
+  cpListen(telnetAcceptorSocket, 5);
   printf("hello ni\n");
   struct PortableSocket *telnetSocket = cpAccept(telnetAcceptorSocket);
   printf("connecting: sproxy (client)\n");

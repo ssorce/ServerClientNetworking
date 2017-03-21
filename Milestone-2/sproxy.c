@@ -28,7 +28,7 @@ int main(int argc, char *argv[])
   */
   struct PortableSocket *clientAcceptor = cpSocket(TCP, "localhost", atoi(argv[1]));
   cpBind(clientAcceptor);
-  cpListen(clientAcceptor, 1);
+  cpListen(clientAcceptor, 5);
   struct PortableSocket *clientProxy = cpAccept(clientAcceptor);
   printf("connecting: telnet\n");
   /*
