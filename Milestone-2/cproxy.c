@@ -84,5 +84,6 @@ int main(int argc, char *argv[])
   cpClose(telnetSocket);
   cpClose(sproxySocket);
   cpCloseNetwork();
+  printf("all sockets closed\n");
   return 0;
 }

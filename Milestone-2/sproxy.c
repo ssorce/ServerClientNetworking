@@ -45,10 +45,10 @@ int main(int argc, char *argv[])
   FD_SET(clientProxy->socket, &readfds);
   FD_SET(telnetSocket->socket, &readfds);
   int n = telnetSocket->socket + 1;
+   char message[size];
   struct timeval tv;
   tv.tv_sec = 0;
   tv.tv_usec = 2000;
-  char message[size];
   printf("looping server\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     {
       // print "recieved from telnet 'message' sending to cproxy"
       cpRecv(clientProxy, message, size);
-      printf("Recieved from client: '%s'\n", message);
+      printf("Recieved from client: '%s'\ncpCheck(telnet): %d\ncpCheck (client)", message, cpCheckError(telnetSocket), cpCheckError(clientProxy));
       cpSend(telnetSocket, message, size);
     }
   }
