@@ -56,7 +56,7 @@ int main(int argc, char *argv[])
   printf("looping\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, &timeout) <= 0)
+    if (select(n, &readfds, NULL, NULL, timeout) <= 0)
       break;
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
