@@ -52,11 +52,12 @@ int main(int argc, char *argv[])
   FD_SET(sproxySocket->socket, &readfds);
   int n = sproxySocket->socket + 1;
   char message[size];
-  int timeout = 2000;
+  int timeoutnumber = 2000;
+  int *timeout = timeoutnumber;
   printf("looping\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, *timeout) <= 0)
+    if (select(n, &readfds, NULL, NULL, timeout) <= 0)
       break;
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
