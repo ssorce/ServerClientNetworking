@@ -29,7 +29,7 @@ int main(int argc, char *argv[])
   /*
     * Connection to the local telnet
     */
-  struct PortableSocket *telnetAcceptorSocket = cpSocket(TCP, "127.0.0.1", clientPort);
+  struct PortableSocket *telnetAcceptorSocket = cpSocket(TCP, "localhost", clientPort);
   cpBind(telnetAcceptorSocket);
   cpListen(telnetAcceptorSocket, 1);
   struct PortableSocket *telnetSocket = cpAccept(telnetAcceptorSocket);
@@ -49,7 +49,7 @@ int main(int argc, char *argv[])
   FD_SET(sproxySocket->socket, &readfds);
   int n = sproxySocket->socket + 1;
   char message[size];
-  
+  printf("looping\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0)
   {
     if (select(n, &readfds, NULL, NULL, NULL) <= 0)
@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     {
       // print "sending from telnet 'message' sending to cproxy"
       cpRecv(sproxySocket, message, size);
-      printf("serverProxy from telnet: '%s'\n", message);
+      printf("Recieved from server: '%s'\n", message);
       cpSend(telnetSocket, message, size);
     }
   }
