@@ -11,38 +11,55 @@
 
 int main(int argc, char *argv[])
 {
-  if (argc != 4)
+  if (argc < 4)
     return 1;
 
   /*
-    * Parse the inputs
-    */
-  int clientPort = atoi(argv[1]);
-  char *serverAddress = argv[2];
-  int serverPort = atoi(argv[3]);
+  * Parse the inputs
+  */
+  int current = 1;
+  int mode = 0;
+  if(argc == 5)
+    if(strchr(argv[current++], 'd'))
+      mode = 1;
+  int clientPort = atoi(argv[current++]);
+  char *serverAddress = argv[current++];
+  int serverPort = atoi(argv[current++]);
 
   /*
     * Open the network
     */
   cpOpenNetwork();
-  printf("connecting: telnet (client)\n");
+
   /*
-    * Connection to the local telnet
-    */
+  * Connection to the local telnet
+  */
+  if(mode == 1)
+    printf("Attempting to create telnet socket\n");
   struct PortableSocket *telnetAcceptorSocket = cpSocket(TCP, "127.0.0.1", clientPort);
-  printf("here\n");
+  if(cpCheckError(telnetAcceptorSocket) != 0){
+    fprintf(stderr, "Failed to create telnet acceptor socket \n");
+    exit(1);
+  }
   cpBind(telnetAcceptorSocket);
-  printf("okay\n");
   cpListen(telnetAcceptorSocket, 5);
-  printf("hello ni\n");
   struct PortableSocket *telnetSocket = cpAccept(telnetAcceptorSocket);
-  printf("connecting: sproxy (client)\n");
+  if(cpCheckError(telnetSocket) != 0){
+    fprintf(stderr, "Failed to create telnet socket \n");
+    exit(1);
+  }
+
   /*
-    * Create connection to sproxy
-    */
+  * Create connection to sproxy
+  */
+  if(mode == 1)
+    printf("Attempting to create sproxy socket\n");
   struct PortableSocket *sproxySocket = cpSocket(TCP, serverAddress, serverPort);
   cpConnect(sproxySocket);
-  printf("connected\n");
+  if(cpCheckError(sproxySocket) != 0){
+    fprintf(stderr, "Failed to create sproxySocket socket \n");
+    exit(1);
+  }
   /*
     * Foward data from one port to another
     */
@@ -54,7 +71,7 @@ int main(int argc, char *argv[])
   char message[size];
   struct timeval tv;
   tv.tv_sec = 0;
-  tv.tv_usec = 2000;
+  tv.tv_usec = 20000;
   printf("looping\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0)
   {
@@ -65,14 +82,16 @@ int main(int argc, char *argv[])
     {
       // print "recieved from telnet 'message' sending to cproxy"
       cpRecv(telnetSocket, message, size);
-      printf("Recieved from telnet (client): '%s'\n", message);
+      if(mode == 1)
+        printf("Recieved from telnet (client): '%s'\n", message);
       cpSend(sproxySocket, message, size);
     }
     if (FD_ISSET(sproxySocket->socket, &readfds))
     {
       // print "sending from telnet 'message' sending to cproxy"
       cpRecv(sproxySocket, message, size);
-      printf("Recieved from server: '%s'\n", message);
+      if(mode == 1)
+        printf("Recieved from server: '%s'\n", message);
       cpSend(telnetSocket, message, size);
     }
   }
@@ -84,6 +103,7 @@ int main(int argc, char *argv[])
   cpClose(telnetSocket);
   cpClose(sproxySocket);
   cpCloseNetwork();
-  printf("all sockets closed\n");
+  if(mode == 1)
+    printf("all sockets closed\n");
   return 0;
 }

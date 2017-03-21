@@ -9,34 +9,53 @@
 
 int main(int argc, char *argv[])
 {
-  if (argc != 2)
+  if (argc < 2)
     return 1;
 
   /*
   * Parse the inputs
   */
-  int serverPort = atoi(argv[1]);
+  int mode = 0;
+  int current = 1;
+  if(argc == 3)
+    if(strchr(argv[current++], 'd'))
+      mode = 1;
+  int serverPort = atoi(argv[current++]);
 
   /*
   * Open the network
   */
   cpOpenNetwork();
 
-  printf("connecting: client\n");
   /*
   * Connection to the client proxy
   */
+  if (mode == 1)
+    printf("connecting: client\n");
   struct PortableSocket *clientAcceptor = cpSocket(TCP, "localhost", atoi(argv[1]));
+  if(cpCheckError(clientAcceptor) != 0){
+    fprintf(stderr, "Failed to create client acceptor socket \n");
+    exit(1);
+  }
   cpBind(clientAcceptor);
   cpListen(clientAcceptor, 5);
   struct PortableSocket *clientProxy = cpAccept(clientAcceptor);
-  printf("connecting: telnet\n");
+  if(cpCheckError(clientProxy) != 0){
+    fprintf(stderr, "Failed to create client socket \n");
+    exit(1);
+  }
+
   /*
   * Connection to the local telnet
   */
+  if (mode == 1)
+    printf("connecting: client\n");
   struct PortableSocket *telnetSocket = cpSocket(TCP, "127.0.0.1", 23);
   cpConnect(telnetSocket);
-  printf("connected\n");
+  if(cpCheckError(telnetSocket) != 0){
+    fprintf(stderr, "Failed to create telnet acceptor socket \n");
+    exit(1);
+  }
   /*
   * Foward data from one port to another
   */
@@ -49,7 +68,6 @@ int main(int argc, char *argv[])
   struct timeval tv;
   tv.tv_sec = 0;
   tv.tv_usec = 2000;
-  printf("looping server\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
     if (select(n, &readfds, NULL, NULL, &tv) <= 0)
@@ -59,14 +77,16 @@ int main(int argc, char *argv[])
     {
       // print "recieved from telnet 'message' sending to sproxy"
       cpRecv(telnetSocket, message, size);
-      printf("Recieved from telnet: '%s'\n", message);
+      if(mode == 1)
+        printf("Recieved from telnet: '%s'\n", message);
       cpSend(clientProxy, message, size);
     }
     if (FD_ISSET(clientProxy->socket, &readfds))
     {
       // print "recieved from telnet 'message' sending to cproxy"
       cpRecv(clientProxy, message, size);
-      printf("Recieved from client: '%s'\ncpCheck(telnet): %d\ncpCheck (client): %d\n", message, cpCheckError(telnetSocket), cpCheckError(clientProxy));
+      if(mode == 1)
+        printf("Recieved from client: '%s'\ncpCheck(telnet): %d\ncpCheck (client): %d\n", message, cpCheckError(telnetSocket), cpCheckError(clientProxy));
       cpSend(telnetSocket, message, size);
     }
   }
