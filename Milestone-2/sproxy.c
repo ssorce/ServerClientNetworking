@@ -45,13 +45,14 @@ int main(int argc, char *argv[])
   FD_SET(clientProxy->socket, &readfds);
   FD_SET(telnetSocket->socket, &readfds);
   int n = telnetSocket->socket + 1;
-  int timeoutnumber = 2000;
-  int *timeout = timeoutnumber;
+  struct timeval tv;
+  tv.tv_sec = 0;
+  tv.tv_usec = 2000;
   char message[size];
   printf("looping server\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, timeout) <= 0)
+    if (select(n, &readfds, NULL, NULL, &tv) <= 0)
       break;
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
