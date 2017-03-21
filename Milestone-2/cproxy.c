@@ -30,8 +30,11 @@ int main(int argc, char *argv[])
     * Connection to the local telnet
     */
   struct PortableSocket *telnetAcceptorSocket = cpSocket(TCP, "localhost", clientPort);
+  printf("here\n");
   cpBind(telnetAcceptorSocket);
+  printf("okay\n");
   cpListen(telnetAcceptorSocket, 1);
+  printf("hello nigga\n");
   struct PortableSocket *telnetSocket = cpAccept(telnetAcceptorSocket);
   printf("connecting: sproxy (client)\n");
   /*
