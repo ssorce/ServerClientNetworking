@@ -26,6 +26,9 @@ int main(int argc, char *argv[])
   char *serverAddress = argv[current++];
   int serverPort = atoi(argv[current++]);
 
+  if(mode == 1)
+    printf("Running cproxy on port %d and connecting to sproxy at %s on port %d\n",clientPort,serverAddress,serverPort);
+
   /*
     * Open the network
     */
@@ -40,6 +43,8 @@ int main(int argc, char *argv[])
   if(cpCheckError(telnetAcceptorSocket) != 0){
     fprintf(stderr, "Failed to create telnet acceptor socket \n");
     exit(1);
+  } else if (mode == 1){
+    printf("Telnet acceptor socket created\n");
   }
   cpBind(telnetAcceptorSocket);
   cpListen(telnetAcceptorSocket, 5);
@@ -47,6 +52,8 @@ int main(int argc, char *argv[])
   if(cpCheckError(telnetSocket) != 0){
     fprintf(stderr, "Failed to create telnet socket \n");
     exit(1);
+  } else if (mode == 1){
+    printf("Telnet socket created\n");
   }
 
   /*
@@ -59,6 +66,8 @@ int main(int argc, char *argv[])
   if(cpCheckError(sproxySocket) != 0){
     fprintf(stderr, "Failed to create sproxySocket socket \n");
     exit(1);
+  } else if (mode == 1){
+    printf("Sproxy socket created\n");
   }
   /*
     * Foward data from one port to another

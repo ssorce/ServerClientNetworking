@@ -22,6 +22,9 @@ int main(int argc, char *argv[])
       mode = 1;
   int serverPort = atoi(argv[current++]);
 
+  if(mode == 1)
+    printf("Running sproxy on port %d\n",serverPort);
+
   /*
   * Open the network
   */
@@ -36,6 +39,8 @@ int main(int argc, char *argv[])
   if(cpCheckError(clientAcceptor) != 0){
     fprintf(stderr, "Failed to create client acceptor socket \n");
     exit(1);
+  } else if (mode == 1){
+    printf("Client acceptor socket created\n");
   }
   cpBind(clientAcceptor);
   cpListen(clientAcceptor, 5);
@@ -43,6 +48,8 @@ int main(int argc, char *argv[])
   if(cpCheckError(clientProxy) != 0){
     fprintf(stderr, "Failed to create client socket \n");
     exit(1);
+  } else if (mode == 1){
+    printf("Client socket created\n");
   }
 
   /*
@@ -55,6 +62,8 @@ int main(int argc, char *argv[])
   if(cpCheckError(telnetSocket) != 0){
     fprintf(stderr, "Failed to create telnet acceptor socket \n");
     exit(1);
+  } else if (mode == 1){
+    printf("Telnet socket created\n");
   }
   /*
   * Foward data from one port to another
@@ -67,7 +76,7 @@ int main(int argc, char *argv[])
    char message[size];
   struct timeval tv;
   tv.tv_sec = 0;
-  tv.tv_usec = 2000;
+  tv.tv_usec = 20000;
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
     if (select(n, &readfds, NULL, NULL, &tv) <= 0)
