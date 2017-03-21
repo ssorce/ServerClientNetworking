@@ -45,6 +45,7 @@ int main(int argc, char *argv[])
   FD_SET(clientProxy->socket, &readfds);
   int n = clientProxy->socket + 1;
   char message[size];
+  
   while(cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0) {
     if(select(n, &readfds, NULL, NULL, NULL) <= 0)
       break;

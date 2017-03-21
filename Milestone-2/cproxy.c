@@ -49,6 +49,7 @@ int main(int argc, char *argv[])
   FD_SET(sproxySocket->socket, &readfds);
   int n = sproxySocket->socket + 1;
   char message[size];
+  
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0)
   {
     if (select(n, &readfds, NULL, NULL, NULL) <= 0)
