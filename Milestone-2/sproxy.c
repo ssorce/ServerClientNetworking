@@ -66,7 +66,7 @@ int main(int argc, char *argv[])
     {
       // print "recieved from telnet 'message' sending to cproxy"
       cpRecv(clientProxy, message, size);
-      printf("Recieved from client: '%s'\ncpCheck(telnet): %d\ncpCheck (client)", message, cpCheckError(telnetSocket), cpCheckError(clientProxy));
+      printf("Recieved from client: '%s'\ncpCheck(telnet): %d\ncpCheck (client): %d\n", message, cpCheckError(telnetSocket), cpCheckError(clientProxy));
       cpSend(telnetSocket, message, size);
     }
   }
