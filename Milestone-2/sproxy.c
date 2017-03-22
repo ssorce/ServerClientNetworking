@@ -113,5 +113,7 @@ int main(int argc, char *argv[])
   cpClose(clientProxy);
   cpClose(telnetSocket);
   cpCloseNetwork();
+  if(mode == 1)
+    printf("all sockets closed\n");
   return 0;
 }
