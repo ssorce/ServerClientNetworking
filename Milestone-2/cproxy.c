@@ -74,16 +74,20 @@ int main(int argc, char *argv[])
     */
   fd_set readfds;
   FD_ZERO(&readfds);
-  FD_SET(telnetSocket->socket, &readfds);
-  FD_SET(sproxySocket->socket, &readfds);
-  int n = sproxySocket->socket + 1;
+  int n = 0;
+  if(sproxySocket->socket > telnetSocket->socket)
+    n = sproxySocket->socket + 1;
+  else
+    n = telnetSocket->socket + 1;
   char message[size];
-  struct timeval tv;
-  tv.tv_sec = 0;
-  tv.tv_usec = 20000;
+  memset(message, 0 , size);
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, &tv) <= 0)
+    FD_SET(telnetSocket->socket, &readfds);
+    FD_SET(sproxySocket->socket, &readfds);
+    if(mode == 1)
+      printf("Waiting for message \n");
+    if (select(n, &readfds, NULL, NULL, NULL) <= 0)
       break;
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
@@ -102,6 +106,8 @@ int main(int argc, char *argv[])
         printf("Recieved from server: '%s'\n", message);
       cpSend(telnetSocket, message, size);
     }
+    FD_CLR(telnetSocket->socket, &readfds);
+    FD_CLR(sproxySocket->socket, &readfds);
   }
 
   /*

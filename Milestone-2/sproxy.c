@@ -70,16 +70,20 @@ int main(int argc, char *argv[])
   */
   fd_set readfds;
   FD_ZERO(&readfds);
-  FD_SET(clientProxy->socket, &readfds);
-  FD_SET(telnetSocket->socket, &readfds);
-  int n = telnetSocket->socket + 1;
-   char message[size];
-  struct timeval tv;
-  tv.tv_sec = 0;
-  tv.tv_usec = 20000;
+  int n = 0;
+  if(clientProxy->socket > telnetSocket->socket)
+    n = clientProxy->socket + 1;
+  else
+    n = telnetSocket->socket + 1;
+  char message[size];
+  memset(message, 0 , size);
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, &tv) <= 0)
+    FD_SET(telnetSocket->socket, &readfds);
+    FD_SET(clientProxy->socket, &readfds);
+    if(mode == 1)
+      printf("Waiting for message \n");
+    if (select(n, &readfds, NULL, NULL, NULL) <= 0)
       break;
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
@@ -95,9 +99,11 @@ int main(int argc, char *argv[])
       // print "recieved from telnet 'message' sending to cproxy"
       cpRecv(clientProxy, message, size);
       if(mode == 1)
-        printf("Recieved from client: '%s'\ncpCheck(telnet): %d\ncpCheck (client): %d\n", message, cpCheckError(telnetSocket), cpCheckError(clientProxy));
+        printf("Recieved from client: '%s'\n", message);
       cpSend(telnetSocket, message, size);
     }
+    FD_CLR(telnetSocket->socket, &readfds);
+    FD_CLR(clientProxy->socket, &readfds);
   }
 
   /*
