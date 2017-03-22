@@ -87,31 +87,25 @@ int main(int argc, char *argv[])
     FD_SET(sproxySocket->socket, &readfds);
     if(mode == 1)
       printf("Waiting for message \n");
-    int val = select(n, &readfds, NULL, NULL, NULL);
-    if (val <= 0)
-      break;
-    if(mode == 1)
-      printf("select return val %d\n",val);
+    select(n, &readfds, NULL, NULL, NULL);
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
     {
       // print "recieved from telnet 'message' sending to cproxy"
-      cpRecv(telnetSocket, message, size);
+      int messageSize = cpRecv(telnetSocket, message, size);
       if(mode == 1)
         printf("Recieved from telnet (client): '%s'\n", message);
-      int messageSize = strlen(message);
-      if(messageSize > 2)
-        cpSend(sproxySocket, message, size);
-      memset(message, 0 , size);
+      cpSend(sproxySocket, message, messageSize);
+      memset(message, 0 , messageSize);
     }
     if (FD_ISSET(sproxySocket->socket, &readfds))
     {
       // print "sending from telnet 'message' sending to cproxy"
-      cpRecv(sproxySocket, message, size);
+      int messageSize = cpRecv(sproxySocket, message, size);
       if(mode == 1)
         printf("Recieved from server: '%s'\n", message);
-      cpSend(telnetSocket, message, size);
-      memset(message, 0 , size);
+      cpSend(telnetSocket, message, messageSize);
+      memset(message, 0 , messageSize);
     }
     FD_CLR(telnetSocket->socket, &readfds);
     FD_CLR(sproxySocket->socket, &readfds);
