@@ -64,7 +64,7 @@ int main(int argc, char *argv[])
   struct PortableSocket *sproxySocket = cpSocket(TCP, serverAddress, serverPort);
   cpConnect(sproxySocket);
   if(cpCheckError(sproxySocket) != 0){
-    fprintf(stderr, "Failed to create sproxySocket socket \n");
+    fprintf(stderr, "Failed to create sproxy socket\n");
     exit(1);
   } else if (mode == 1){
     printf("Sproxy socket created\n");
@@ -77,6 +77,7 @@ int main(int argc, char *argv[])
   FD_SET(telnetSocket->socket, &readfds);
   FD_SET(sproxySocket->socket, &readfds);
   int n = sproxySocket->socket + 1;
+  int selectValue = 0;
   char message[size];
   struct timeval tv;
   tv.tv_sec = 0;
@@ -84,8 +85,13 @@ int main(int argc, char *argv[])
   printf("looping\n");
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(sproxySocket) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, &tv) <= 0)
+    if (selectValue = select(n, &readfds, NULL, NULL, &tv) <= 0){
+      if(selectValue == 0)
+        fprintf(stderr,"Connection timed out\n");
+      else
+        fprintf(stderr, "Error occured: %d\n",selectValue);
       break;
+    }
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
     {

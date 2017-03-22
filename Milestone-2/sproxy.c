@@ -35,7 +35,7 @@ int main(int argc, char *argv[])
   */
   if (mode == 1)
     printf("connecting: client\n");
-  struct PortableSocket *clientAcceptor = cpSocket(TCP, "localhost", atoi(argv[1]));
+  struct PortableSocket *clientAcceptor = cpSocket(TCP, "localhost", serverPort);
   if(cpCheckError(clientAcceptor) != 0){
     fprintf(stderr, "Failed to create client acceptor socket \n");
     exit(1);
@@ -73,14 +73,20 @@ int main(int argc, char *argv[])
   FD_SET(clientProxy->socket, &readfds);
   FD_SET(telnetSocket->socket, &readfds);
   int n = telnetSocket->socket + 1;
+  int selectValue = 0;
    char message[size];
   struct timeval tv;
   tv.tv_sec = 0;
   tv.tv_usec = 20000;
   while (cpCheckError(telnetSocket) == 0 && cpCheckError(clientProxy) == 0)
   {
-    if (select(n, &readfds, NULL, NULL, &tv) <= 0)
+    if (selectValue = select(n, &readfds, NULL, NULL, &tv) <= 0){
+      if(selectValue == 0)
+        fprintf(stderr,"Connection timed out\n");
+      else
+        fprintf(stderr, "Error occured: %d\n",selectValue);
       break;
+    }
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds))
     {
