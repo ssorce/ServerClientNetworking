@@ -93,6 +93,8 @@ int main(int argc, char *argv[])
     {
       // print "recieved from telnet 'message' sending to cproxy"
       int messageSize = cpRecv(telnetSocket, message, size);
+      if(messageSize <= 0)
+        break;
       if(mode == 1)
         printf("Recieved from telnet (client): '%s'\n", message);
       cpSend(sproxySocket, message, messageSize);
@@ -102,6 +104,8 @@ int main(int argc, char *argv[])
     {
       // print "sending from telnet 'message' sending to cproxy"
       int messageSize = cpRecv(sproxySocket, message, size);
+      if(messageSize <= 0)
+        break;
       if(mode == 1)
         printf("Recieved from server: '%s'\n", message);
       cpSend(telnetSocket, message, messageSize);

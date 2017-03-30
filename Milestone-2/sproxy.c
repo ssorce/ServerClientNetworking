@@ -86,8 +86,9 @@ int main(int argc, char *argv[])
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds)){
       // print "recieved from telnet 'message' sending to sproxy"
-      memset(message, 0 , size);
       int messageSize = cpRecv(telnetSocket, message, size);
+      if(messageSize <= 0)
+        break;
       if(mode == 1)
         printf("Recieved from telnet: '%s'\n", message);
       cpSend(clientProxy, message, messageSize);
@@ -95,8 +96,9 @@ int main(int argc, char *argv[])
     }
     if (FD_ISSET(clientProxy->socket, &readfds)){
       // print "recieved from telnet 'message' sending to cproxy"
-      memset(message, 0 , size);
       int messageSize = cpRecv(clientProxy, message, size);
+      if(messageSize <= 0)
+        break;
       if(mode == 1)
         printf("Recieved from client: '%s'\n", message);
       cpSend(telnetSocket, message, messageSize);
