@@ -4,10 +4,9 @@
 #include <string.h>
 #include <stdio.h>
 
-int HEARTBEAT = 0, MESSAGE = 1, NEW_CONNECTION = 2, RECONNECT = 3;
 typedef struct message {
   int type;
-  char message[256];
+  char message[1024];
 } message;
 
 //Serializes the message in order to send over the network

@@ -7,6 +7,7 @@
 
 #include "PortableSocket.h"
 #include <sys/select.h>
+#include "message.h"
 #define size 1024
 
 int main(int argc, char *argv[])

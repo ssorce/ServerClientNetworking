@@ -1,5 +1,6 @@
 #include "message.h"
 
+const int HEARTBEAT = 0, MESSAGE = 1, NEW_CONNECTION = 2, RECONNECT = 3;
 //Serializes the message in order to send over the network
 void serialize(struct message * message, char * output){
   sprintf(output, "%d%s",message->type,message->message);
