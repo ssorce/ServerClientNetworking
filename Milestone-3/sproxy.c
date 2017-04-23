@@ -7,6 +7,8 @@
 /*
 * Keeps killing connection when telnet start.
 *
+Attempting to create sproxy socket
+Failed to create sproxy socket
 */
 
 #include "PortableSocket.h"
