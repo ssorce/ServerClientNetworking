@@ -91,7 +91,8 @@ int main(int argc, char *argv[])
   memset(message, 0, size);
   while (cpCheckError(sproxySocket) == 0)
   {
-     printf("Address telnet(client): %d\n", telnetSocket->address.sin_addr.s_addr);
+    if (mode == 1)
+      printf("Address telnet(client): %d\n", telnetSocket->address.sin_addr.s_addr);
     if (cpCheckError(telnetSocket) == 0)
     {
       FD_ZERO(&readfds);
@@ -100,6 +101,8 @@ int main(int argc, char *argv[])
       if (mode == 1)
         printf("Waiting for message \n");
       select(n, &readfds, NULL, NULL, NULL);
+      if (mode == 1)
+        printf("Got message\n");
       // foward the message
       if (FD_ISSET(telnetSocket->socket, &readfds))
       {
