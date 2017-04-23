@@ -94,9 +94,7 @@ void parseInput(int argc, char *argv[]){
   if (argc == 3)
     if (strchr(argv[current++], 'd'))
       mode = 1;
-  int serverPort = atoi(argv[current++]);
-  if (mode == 1)
-    printf("Running sproxy on port %d\n", serverPort);
+  serverPort = atoi(argv[current++]);
 }
 
 int main(int argc, char *argv[])
@@ -108,6 +106,8 @@ int main(int argc, char *argv[])
   * Parse the inputs
   */
   parseInput(argc, argv);
+  if (mode == 1)
+    printf("Running sproxy on port %d\n", serverPort);
 
   /*
   * Open the network

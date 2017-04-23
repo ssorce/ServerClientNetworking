@@ -72,7 +72,7 @@ struct PortableSocket * getSproxy(){
   struct PortableSocket *sproxySocket = cpSocket(TCP, serverAddress, serverPort);
   cpConnect(sproxySocket);
   if (cpCheckError(sproxySocket) != 0){
-    fprintf(stderr, "Failed to create sproxy socket\n");
+    fprintf(stderr, "Failed to create sproxy socket %d\n", sproxySocket->socket);
     exit(1);
   }
   else if (mode == 1){
