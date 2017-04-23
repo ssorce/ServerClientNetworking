@@ -91,9 +91,9 @@ int main(int argc, char *argv[])
   memset(message, 0, size);
   while (cpCheckError(sproxySocket) == 0)
   {
+     printf("Address telnet(client): %d\n", telnetSocket->address.sin_addr.s_addr);
     if (cpCheckError(telnetSocket) == 0)
     {
-      printf("Address telnet(client): %d\n", telnetSocket->address.sin_addr.s_addr);
       FD_ZERO(&readfds);
       FD_SET(telnetSocket->socket, &readfds);
       FD_SET(sproxySocket->socket, &readfds);
