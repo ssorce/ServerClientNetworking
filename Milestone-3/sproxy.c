@@ -87,6 +87,7 @@ int main(int argc, char *argv[])
   memset(message, 0, size);
   while (cpCheckError(clientProxy) == 0)
   {
+      printf("Address telnet(server): %d\n", telnetSocket->address.sin_addr.s_addr);
     if (cpCheckError(telnetSocket) == 0)
     {
       FD_ZERO(&readfds);
