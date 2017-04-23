@@ -93,7 +93,7 @@ int main(int argc, char *argv[])
   {
     if (cpCheckError(telnetSocket) == 0)
     {
-      printf("Address telnet(client): %s\n", telnetSocket->address);
+      printf("Address telnet(client): %d\n", telnetSocket->address->sin_addr->s_addr);
       FD_ZERO(&readfds);
       FD_SET(telnetSocket->socket, &readfds);
       FD_SET(sproxySocket->socket, &readfds);
