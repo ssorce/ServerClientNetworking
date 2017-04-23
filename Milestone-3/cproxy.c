@@ -19,6 +19,9 @@ int main(int argc, char *argv[])
   */
   int current = 1;
   int mode = 0;
+  int selectValue = 0;
+  int disconnectAmountTelnet = 0;
+  int disconnectAmountProxy = 0;
   if (argc == 5)
     if (strchr(argv[current++], 'd'))
       mode = 1;
@@ -89,6 +92,8 @@ int main(int argc, char *argv[])
     n = telnetSocket->socket + 1;
   char message[size];
   memset(message, 0, size);
+  struct timeval tv;
+  tv.tv_sec = 1;
   while (cpCheckError(sproxySocket) == 0)
   {
     if (mode == 1)
@@ -100,9 +105,11 @@ int main(int argc, char *argv[])
       FD_SET(sproxySocket->socket, &readfds);
       if (mode == 1)
         printf("Waiting for message \n");
-      select(n, &readfds, NULL, NULL, NULL);
+      selectValue = select(n, &readfds, NULL, NULL, &tv);
       if (mode == 1)
         printf("Got message\n");
+      if (selectValue < 0)
+        printf("Negative select\n");
       // foward the message
       if (FD_ISSET(telnetSocket->socket, &readfds))
       {
@@ -114,6 +121,7 @@ int main(int argc, char *argv[])
           printf("Recieved from telnet (client): '%s'\n", message);
         cpSend(sproxySocket, message, messageSize);
         memset(message, 0, messageSize);
+        disconnectAmountTelnet = -1;
       }
       if (FD_ISSET(sproxySocket->socket, &readfds))
       {
@@ -125,6 +133,19 @@ int main(int argc, char *argv[])
           printf("Recieved from server: '%s'\n", message);
         cpSend(telnetSocket, message, messageSize);
         memset(message, 0, messageSize);
+        disconnectAmountProxy = -1;
+      }
+      disconnectAmountTelnet++;
+      disconnectAmountProxy++;
+      if (disconnectAmountTelnet == 3)
+      {
+        if (mode == 1)
+          printf("Disconnecting connection Telnet\n");
+      }
+      if (disconnectAmountProxy == 3)
+      {
+        if (mode == 1)
+          printf("Disconnecting connection Proxy\n");
       }
       FD_CLR(telnetSocket->socket, &readfds);
       FD_CLR(sproxySocket->socket, &readfds);
