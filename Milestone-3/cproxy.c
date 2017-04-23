@@ -5,6 +5,14 @@
 * telnet localhost 5200
 */
 
+
+/*
+* Keeps killing connection when telnet start.
+*
+*/
+
+
+
 #include "PortableSocket.h"
 #include <sys/select.h>
 #include "message.h"

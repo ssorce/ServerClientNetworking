@@ -3,6 +3,12 @@
 *  sproxy 6200
 */
 
+
+/*
+* Keeps killing connection when telnet start.
+*
+*/
+
 #include "PortableSocket.h"
 #include <sys/select.h>
 #include "message.h"
