@@ -80,7 +80,7 @@ struct PortableSocket * getSproxy(){
   struct PortableSocket *sproxySocket = cpSocket(TCP, serverAddress, serverPort);
   cpConnect(sproxySocket);
   if (cpCheckError(sproxySocket) != 0){
-    fprintf(stderr, "Failed to create sproxy socket %d\n", sproxySocket->socket);
+    fprintf(stderr, "Failed to create sproxy socket\n");
     exit(1);
   }
   else if (mode == 1){
@@ -101,14 +101,30 @@ void reset(fd_set * readfds, int telnetSocket, int serverSocket){
 //forwards a message from the sender socket to the reciever socket
 int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
   // print "recieved from telnet 'message' sending to sproxy"
-  int messageSize = cpRecv(sender, message, size);
-  if (messageSize <= 0)
-    return -1;
+  struct message messageStruct;
+  messageStruct.type = MESSAGE;
+  strcpy(messageStruct.message,message);
+  char serialized[size];
+  serialize(&messageStruct, serialized);
+  int messageSize = cpRecv(sender, serialized, size);
   if (mode == 1)
     printf("Recieved from %s: '%s'\n", senderName, message);
   cpSend(reciever, message, messageSize);
   memset(message, 0, messageSize);
   return 0;
+}
+
+//forwards a message from the sender socket to the reciever socket
+int sendMessage(struct PortableSocket * reciever, char * message){
+  cpSend(reciever, message, size);
+  memset(message, 0, size);
+  return 0;
+}
+
+int getMessage(struct message * message, struct PortableSocket * sender){
+  char messageAsChar[size];
+  int messageSize = cpRecv(sender, messageAsChar, size);
+  deserialize(messageAsChar,message);
 }
 
 int main(int argc, char *argv[]) {
@@ -150,8 +166,9 @@ int main(int argc, char *argv[]) {
   int n = getN(socketN, 2);
   char message[size];
   memset(message, 0, size);
+  struct message messageStruct;
   struct timeval tv;
-  tv.tv_sec = 3;
+  tv.tv_sec = 1;
 
   /*
   * run the program
@@ -162,18 +179,19 @@ int main(int argc, char *argv[]) {
       if (mode == 1)
         printf("Waiting for message \n");
       selectValue = select(n, &readfds, NULL, NULL, &tv);
-      if (mode == 1)
-        printf("Got message\n");
-      if (selectValue < 0)
-        printf("Negative select\n");
       // foward the message
       if (FD_ISSET(telnetSocket->socket, &readfds)) {
         forward(telnetSocket,sproxySocket,message,"telnet");
       }
       if (FD_ISSET(sproxySocket->socket, &readfds)){
-        forward(sproxySocket,telnetSocket,message,"sproxy");
+        getMessage(&messageStruct,sproxySocket);
+        if(messageStruct.type == MESSAGE){
+          sendMessage(telnetSocket,messageStruct.message);
+        } else if (messageStruct.type == HEARTBEAT){}
+          //TODO: implement heatbeat recv
+        }
       }
-  }
+      //TODO Implement heartbeat send
 
   /*
     * Close the connections

@@ -32,14 +32,30 @@ void reset(fd_set * readfds, int telnetSocket, int clientSocket){
 //forwards a message from the sender socket to the reciever socket
 int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
   // print "recieved from telnet 'message' sending to sproxy"
-  int messageSize = cpRecv(sender, message, size);
-  if (messageSize <= 0)
-    return -1;
+  struct message messageStruct;
+  messageStruct.type = MESSAGE;
+  strcpy(messageStruct.message,message);
+  char serialized[size];
+  serialize(&messageStruct, serialized);
+  int messageSize = cpRecv(sender, serialized, size);
   if (mode == 1)
     printf("Recieved from %s: '%s'\n", senderName, message);
   cpSend(reciever, message, messageSize);
   memset(message, 0, messageSize);
   return 0;
+}
+
+//forwards a message from the sender socket to the reciever socket
+int sendMessage(struct PortableSocket * reciever, char * message){
+  cpSend(reciever, message, size);
+  memset(message, 0, size);
+  return 0;
+}
+
+void getMessage(struct message * message, struct PortableSocket * sender){
+  char messageAsChar[size];
+  int messageSize = cpRecv(sender, messageAsChar, size);
+  deserialize(messageAsChar,message);
 }
 
 //gets the clientAcceptor socket
@@ -143,8 +159,8 @@ int main(int argc, char *argv[])
   fd_set readfds;
   int socketN[] = {clientProxy->socket, telnetSocket->socket};
   int n = getN(socketN, 2);
-  char message[size];
   struct message messageStruct;
+  char message[size];
   memset(message, 0, size);
   struct timeval tv;
   tv.tv_sec = 3;
@@ -162,9 +178,13 @@ int main(int argc, char *argv[])
       forward(telnetSocket, clientProxy, message,"telnet");
     }
     if (FD_ISSET(clientProxy->socket, &readfds)) {
-      forward(clientProxy, telnetSocket, message,"client");
+      getMessage(&messageStruct,clientProxy);
+      if(messageStruct.type == MESSAGE){
+        sendMessage(telnetSocket,messageStruct.message);
+      } else if (messageStruct.type == HEARTBEAT){}
+        //TODO: implement heatbeat recv
+      }
     }
-  }
 
   /*
   * Close the connections
