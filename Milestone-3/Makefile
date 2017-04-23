@@ -2,7 +2,7 @@
 # Declaration of variables
 CC = gcc
 CC_FLAGS = -Wall -g
-DEPS = PortableSocket.h
+DEPS = message.h PortableSocket.h
 
 .PHONY: all clean
 
@@ -11,10 +11,10 @@ all: sproxy cproxy
 %.o: %.c $(DEPS)
 	$(CC) $(CFLAGS) -c -o $@ $<
 
-cproxy: cproxy.o PortableSocket.o
+cproxy: cproxy.o PortableSocket.o message.o
 	$(CC) $(CFLAGS) -o $@ $^
 
-sproxy: sproxy.o PortableSocket.o
+sproxy: sproxy.o PortableSocket.o message.o
 	$(CC) $(CFLAGS) -o $@ $^
 
 #clean the object files and executables
