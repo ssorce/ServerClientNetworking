@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
   int n = getN(socketN, 2);
   char message[size];
   memset(message, 0, size);
-  struct timeval tv = {5, 0};
+  struct timeval tv = {1, 0};
 
   /*
   * run the program
@@ -192,6 +192,7 @@ int main(int argc, char *argv[]) {
       reset(&readfds, telnetSocket->socket, sproxySocket->socket);
       if (mode == 1)
         printf("Waiting for message \n");
+      tv = {1, 0};
       selectValue = select(n, &readfds, NULL, NULL, &tv);
       if(selectValue == 0){
         if (mode == 1)
