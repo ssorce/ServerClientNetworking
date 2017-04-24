@@ -103,13 +103,14 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
   // print "recieved from telnet 'message' sending to sproxy"
   int messageSize = cpRecv(sender, message, size);
   if (mode == 1)
-    printf("Recieved from %s: '%s'\n", senderName, message);
+    printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
   struct message messageStruct;
   messageStruct.type = MESSAGE;
+  memset(messageStruct.message, 0, messageSize);
   strcpy(messageStruct.message,message);
   char serialized[size];
   serialize(&messageStruct, serialized);
-  cpSend(reciever, serialized, messageSize+1);
+  cpSend(reciever, serialized, size);
   memset(message, 0, messageSize);
   return 0;
 }
