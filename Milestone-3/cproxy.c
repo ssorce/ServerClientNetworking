@@ -118,12 +118,16 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
 int sendMessage(struct PortableSocket * reciever, char * message){
   cpSend(reciever, message, size);
   memset(message, 0, size);
+  if(mode == 1)
+    printf("Sending '%s' to telnet\n",message);
   return 0;
 }
 
 int getMessage(struct message * message, struct PortableSocket * sender){
   char messageAsChar[size];
   int messageSize = cpRecv(sender, messageAsChar, size);
+  if(mode == 1)
+    printf("Recived '%s' from server\n",messageAsChar);
   deserialize(messageAsChar,message);
 }
 
