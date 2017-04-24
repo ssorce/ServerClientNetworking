@@ -19,13 +19,16 @@ Failed to create sproxy socket
 int mode = 0;
 int selectValue = 0;
 int serverPort = 0;
+int clientConnected = 0;
 
 // resets the select method, to be used again
 void reset(fd_set * readfds, int telnetSocket, int clientSocket){
   FD_CLR(telnetSocket, readfds);
-  FD_CLR(clientSocket, readfds);
+  if(clientConnected == 1)
+    FD_CLR(clientSocket, readfds);
   FD_ZERO(readfds);
-  FD_SET(clientSocket, readfds);
+  if(clientConnected == 1)
+    FD_SET(clientSocket, readfds);
   FD_SET(telnetSocket, readfds);
 }
 
@@ -103,6 +106,7 @@ struct PortableSocket * getClient(struct PortableSocket * clientAcceptor){
   else if (mode == 1){
     printf("Client socket created\n");
   }
+  clientConnected = 1;
   return client;
 }
 
@@ -198,7 +202,7 @@ int main(int argc, char *argv[])
       if(result <= 0)
         break;
     }
-    if (FD_ISSET(clientProxy->socket, &readfds)) {
+    if (clientConnected == 1 && FD_ISSET(clientProxy->socket, &readfds)) {
       int result = recvMessage(clientProxy,telnetSocket);
       if(result <= 0)
         break;
@@ -206,7 +210,13 @@ int main(int argc, char *argv[])
     }
     if(selectValue == 0){
       printf("Server connection timed out\n");
+      cpClose(clientProxy);
+      clientConnected = 0;
+      int socketN[] = {telnetSocket->socket};
+      n = getN(socketN, 1);
     }
+    if(clientConnected == 0)
+      printf("Client socket is closed!!!!!!!\n");
   }
 
   /*
