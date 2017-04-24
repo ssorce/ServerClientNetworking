@@ -195,6 +195,7 @@ int main(int argc, char *argv[])
     if (mode == 1)
       printf("Waiting for message \n");
     struct timeval tv2 = {3, 0};
+    struct timeval tv3 = {30, 0};
     selectValue = select(n, &readfds, NULL, NULL, &tv);
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds)) {
@@ -208,15 +209,18 @@ int main(int argc, char *argv[])
         break;
       tv = tv2;
     }
+    if(selectValue == 0 && clientConnected == 0){
+      printf("Timedout\n");
+      break;
+    }
     if(selectValue == 0 && clientConnected == 1){
       printf("Server connection timed out\n");
       cpClose(clientProxy);
       clientConnected = 0;
       int socketN[] = {telnetSocket->socket};
       n = getN(socketN, 1);
+      tv = tv3;
     }
-    if(clientConnected == 0)
-      printf("Client socket is closed!!!!!!!\n");
   }
 
   /*
