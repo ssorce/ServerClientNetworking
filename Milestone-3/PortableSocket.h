@@ -106,4 +106,10 @@ int cpClose(struct PortableSocket* socket);
  * up any additional resources that may be used by the platform specific implementation.
  */
 int cpCloseNetwork();
+
+/*
+ * checks to see if an error has occured and returns the error code, also sets
+ * the Portable Sockets error field.
+ */
+int cpCheckError(struct PortableSocket * socket);
 #endif

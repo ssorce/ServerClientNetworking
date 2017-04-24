@@ -104,33 +104,34 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
   int messageSize = cpRecv(sender, message, size);
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
-  struct message messageStruct;
-  messageStruct.type = MESSAGE;
-  memset(messageStruct.message, 0, messageSize);
-  strcpy(messageStruct.message,message);
-  char serialized[size];
-  serialize(&messageStruct, serialized);
-  cpSend(reciever, serialized, size);
+  char * type = "1";
+  cpSend(reciever, type, 1);
+  cpSend(reciever, message, messageSize);
   memset(message, 0, messageSize);
   return 0;
 }
 
 //forwards a message from the sender socket to the reciever socket
-int sendMessage(struct PortableSocket * reciever, char * message){
+int sendMessage(struct PortableSocket * reciever, char * message, int messageSize){
   if(mode == 1)
     printf("Sending '%s' to telnet\n",message);
-  cpSend(reciever, message, size);
-  memset(message, 0, size);
+  cpSend(reciever, message, messageSize);
+  memset(message, 0, messageSize);
   return 0;
 }
 
-void getMessage(struct message * message, struct PortableSocket * sender){
+void recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
   char messageAsChar[size];
+  char typeS[10];
   memset(messageAsChar, 0, size);
-  int messageSize = cpRecv(sender, messageAsChar, size);
-  deserialize(messageAsChar,message);
+  memset(typeS, 0, 10);
+  int messageSize = cpRecv(sender, typeS, 1);
+  messageSize = cpRecv(sender, messageAsChar, size);
+  int type = atoi(typeS);
   if(mode == 1)
-    printf("Recived message %s of type = %d %s\n", messageAsChar, message->type, message->message);
+    printf("Recived message %s of type = %d\n", messageAsChar, type);
+  if(type == MESSAGE)
+    sendMessage(reciever,messageAsChar,messageSize);
 }
 
 int main(int argc, char *argv[]) {
@@ -165,14 +166,13 @@ int main(int argc, char *argv[]) {
     printf("Attempting to create sproxy socket\n");
   struct PortableSocket *sproxySocket = getSproxy();
   /*
-    * set up data for the program
-    */
+  * set up data for the program
+  */
   fd_set readfds;
   int socketN[] = {sproxySocket->socket, telnetSocket->socket};
   int n = getN(socketN, 2);
   char message[size];
   memset(message, 0, size);
-  struct message messageStruct;
   struct timeval tv;
   tv.tv_sec = 1;
 
@@ -190,14 +190,10 @@ int main(int argc, char *argv[]) {
         forward(telnetSocket,sproxySocket,message,"telnet");
       }
       if (FD_ISSET(sproxySocket->socket, &readfds)){
-        getMessage(&messageStruct,sproxySocket);
-        if(messageStruct.type == MESSAGE){
-          sendMessage(telnetSocket,messageStruct.message);
-        } else if (messageStruct.type == HEARTBEAT){}
-          //TODO: implement heatbeat recv
-        }
+        recvMessage(sproxySocket,telnetSocket);
       }
       //TODO Implement heartbeat send
+  }
 
   /*
     * Close the connections
@@ -210,5 +206,3 @@ int main(int argc, char *argv[]) {
     printf("all sockets closed\n");
   return 0;
 }
-
-
