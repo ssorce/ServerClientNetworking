@@ -5,14 +5,6 @@
 * telnet localhost 5200
 */
 
-
-/*
-* Keeps killing connection when telnet start.
-*
-*/
-
-
-
 #include "PortableSocket.h"
 #include <sys/select.h>
 #include "message.h"
@@ -25,18 +17,21 @@ char *serverAddress;
 int serverPort;
 
 //gets the value of n for select
-int getN(int socket[], int numberOfSockets){
+int getN(int socket[], int numberOfSockets)
+{
   int max = -1;
   int i = 0;
-  for(i = 0; i < numberOfSockets; i++){
-    if(socket[i] > max)
+  for (i = 0; i < numberOfSockets; i++)
+  {
+    if (socket[i] > max)
       max = socket[i];
   }
   return max + 1;
 }
 
 //parses the input
-void parseInput(int argc, char *argv[]){
+void parseInput(int argc, char *argv[])
+{
   int current = 1;
   mode = 0;
   selectValue = 0;
@@ -49,13 +44,16 @@ void parseInput(int argc, char *argv[]){
 }
 
 //get the telnetAcceptorSocket
-struct PortableSocket * getTelnetAcceptor(){
-  struct PortableSocket * telnetAcceptorSocket = cpSocket(TCP, "127.0.0.1", clientPort);
-  if (cpCheckError(telnetAcceptorSocket) != 0){
+struct PortableSocket *getTelnetAcceptor()
+{
+  struct PortableSocket *telnetAcceptorSocket = cpSocket(TCP, "127.0.0.1", clientPort);
+  if (cpCheckError(telnetAcceptorSocket) != 0)
+  {
     fprintf(stderr, "Failed to create telnet acceptor socket \n");
     exit(1);
   }
-  else if (mode == 1){
+  else if (mode == 1)
+  {
     printf("Telnet acceptor socket created\n");
   }
   cpBind(telnetAcceptorSocket);
@@ -64,33 +62,40 @@ struct PortableSocket * getTelnetAcceptor(){
 }
 
 //get the telnetSocket
-struct PortableSocket * getTelnet(struct PortableSocket * telnetAcceptorSocket){
+struct PortableSocket *getTelnet(struct PortableSocket *telnetAcceptorSocket)
+{
   struct PortableSocket *telnetSocket = cpAccept(telnetAcceptorSocket);
-  if (cpCheckError(telnetSocket) != 0){
+  if (cpCheckError(telnetSocket) != 0)
+  {
     fprintf(stderr, "Failed to create telnet socket \n");
     exit(1);
   }
-  else if (mode == 1){
+  else if (mode == 1)
+  {
     printf("Telnet socket created\n");
   }
   return telnetSocket;
 }
 
-struct PortableSocket * getSproxy(){
+struct PortableSocket *getSproxy()
+{
   struct PortableSocket *sproxySocket = cpSocket(TCP, serverAddress, serverPort);
   cpConnect(sproxySocket);
-  if (cpCheckError(sproxySocket) != 0){
+  if (cpCheckError(sproxySocket) != 0)
+  {
     fprintf(stderr, "Failed to create sproxy socket\n");
     exit(1);
   }
-  else if (mode == 1){
+  else if (mode == 1)
+  {
     printf("Sproxy socket created\n");
   }
   return sproxySocket;
 }
 
 // resets the select method, to be used again
-void reset(fd_set * readfds, int telnetSocket, int serverSocket){
+void reset(fd_set *readfds, int telnetSocket, int serverSocket)
+{
   FD_CLR(telnetSocket, readfds);
   FD_CLR(serverSocket, readfds);
   FD_ZERO(readfds);
@@ -99,11 +104,12 @@ void reset(fd_set * readfds, int telnetSocket, int serverSocket){
 }
 
 //forwards a message from the sender socket to the reciever socket
-int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
+int forward(struct PortableSocket *sender, struct PortableSocket *reciever, char *message, char *senderName)
+{
   // print "recieved from telnet 'message' sending to sproxy"
   struct message messageStruct;
   messageStruct.type = MESSAGE;
-  strcpy(messageStruct.message,message);
+  strcpy(messageStruct.message, message);
   char serialized[size];
   serialize(&messageStruct, serialized);
   int messageSize = cpRecv(sender, serialized, size);
@@ -115,23 +121,26 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
 }
 
 //forwards a message from the sender socket to the reciever socket
-int sendMessage(struct PortableSocket * reciever, char * message){
+int sendMessage(struct PortableSocket *reciever, char *message)
+{
   cpSend(reciever, message, size);
   memset(message, 0, size);
-  if(mode == 1)
-    printf("Sending '%s' to telnet\n",message);
+  if (mode == 1)
+    printf("Sending '%s' to telnet\n", message);
   return 0;
 }
 
-int getMessage(struct message * message, struct PortableSocket * sender){
+int getMessage(struct message *message, struct PortableSocket *sender)
+{
   char messageAsChar[size];
   int messageSize = cpRecv(sender, messageAsChar, size);
-  if(mode == 1)
-    printf("Recived '%s' from server\n",messageAsChar);
-  deserialize(messageAsChar,message);
+  if (mode == 1)
+    printf("Recived '%s' from server\n", messageAsChar);
+  deserialize(messageAsChar, message);
 }
 
-int main(int argc, char *argv[]) {
+int main(int argc, char *argv[])
+{
   if (argc < 4)
     return 1;
 
@@ -153,8 +162,8 @@ int main(int argc, char *argv[]) {
   */
   if (mode == 1)
     printf("Attempting to create telnet socket\n");
-  struct PortableSocket * telnetAcceptorSocket = getTelnetAcceptor();
-  struct PortableSocket * telnetSocket = getTelnet(telnetAcceptorSocket);
+  struct PortableSocket *telnetAcceptorSocket = getTelnetAcceptor();
+  struct PortableSocket *telnetSocket = getTelnet(telnetAcceptorSocket);
 
   /*
   * Create connection to sproxy
@@ -179,23 +188,30 @@ int main(int argc, char *argv[]) {
   */
   while (cpCheckError(sproxySocket) == 0)
   {
-      reset(&readfds, telnetSocket->socket, sproxySocket->socket);
-      if (mode == 1)
-        printf("Waiting for message \n");
-      selectValue = select(n, &readfds, NULL, NULL, &tv);
-      // foward the message
-      if (FD_ISSET(telnetSocket->socket, &readfds)) {
-        forward(telnetSocket,sproxySocket,message,"telnet");
+    reset(&readfds, telnetSocket->socket, sproxySocket->socket);
+    if (mode == 1)
+      printf("Waiting for message \n");
+    selectValue = select(n, &readfds, NULL, NULL, &tv);
+    // foward the message
+    if (FD_ISSET(telnetSocket->socket, &readfds))
+    {
+      forward(telnetSocket, sproxySocket, message, "telnet");
+    }
+    if (FD_ISSET(sproxySocket->socket, &readfds))
+    {
+      getMessage(&messageStruct, sproxySocket);
+      if (messageStruct.type == MESSAGE)
+      {
+        sendMessage(telnetSocket, messageStruct.message);
       }
-      if (FD_ISSET(sproxySocket->socket, &readfds)){
-        getMessage(&messageStruct,sproxySocket);
-        if(messageStruct.type == MESSAGE){
-          sendMessage(telnetSocket,messageStruct.message);
-        } else if (messageStruct.type == HEARTBEAT){}
-          //TODO: implement heatbeat recv
-        }
+      else if (messageStruct.type == HEARTBEAT)
+      {
+        // 
       }
-      //TODO Implement heartbeat send
+      //TODO: implement heatbeat recv
+    }
+  }
+  //TODO Implement heartbeat send
 
   /*
     * Close the connections
