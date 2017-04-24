@@ -216,6 +216,9 @@ int main(int argc, char *argv[]) {
         if(result <= 0)
           break;
       }
+      if(heartbeatsSinceLastReply > 3){
+        printf("heartbeatsSinceLastReply = %d\n", heartbeatsSinceLastReply);
+      }
   }
 
   /*
