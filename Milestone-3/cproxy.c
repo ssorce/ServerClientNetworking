@@ -208,17 +208,7 @@ int main(int argc, char *argv[])
     }
     else
     {
-      AmountHeart++;
-      if (AmountHeart == 3) // This is where reconnect happens
-      {
-      }
-      else
-      {
-        char c = '0';
-        sendMessage(telnetSocket, &c, 1); // Sending the type HeartBeat
-        c = ' ';
-        sendMessage(telnetSocket, &c, 1); // Sending a blank message (could send the amount of Heart too)
-      }
+    }
     }
     //TODO Implement heartbeat send
   }
