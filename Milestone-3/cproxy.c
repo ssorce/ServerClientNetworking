@@ -183,7 +183,7 @@ int main(int argc, char *argv[]) {
   int n = getN(socketN, 2);
   char message[size];
   memset(message, 0, size);
-  struct timeval tv = {0, 1};
+  struct timeval tv = {5, 0};
 
   /*
   * run the program
