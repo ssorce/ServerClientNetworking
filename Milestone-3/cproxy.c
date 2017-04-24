@@ -23,6 +23,7 @@ int selectValue;
 int clientPort;
 char *serverAddress;
 int serverPort;
+int heartbeatsSinceLastReply;
 
 //gets the value of n for select
 int getN(int socket[], int numberOfSockets){
@@ -137,12 +138,14 @@ int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever
       return 0;
     sendMessage(reciever,messageAsChar,messageSize);
   } else if (type == HEARTBEAT){
-    printf("Recived heartbeat from server");
+    printf("recived heartbeat reply\n");
+    heartbeatsSinceLastReply = 0;
   }
   return messageSize;
 }
 
 void sendHeartbeat(struct PortableSocket * reciever){
+  heartbeatsSinceLastReply++;
   char * type = "0";
   cpSend(reciever, type, 1);
 }
@@ -186,7 +189,7 @@ int main(int argc, char *argv[]) {
   int n = getN(socketN, 2);
   char message[size];
   memset(message, 0, size);
-
+  struct timeval tv = {1, 0};
   /*
   * run the program
   */
@@ -194,12 +197,12 @@ int main(int argc, char *argv[]) {
       reset(&readfds, telnetSocket->socket, sproxySocket->socket);
       if (mode == 1)
         printf("Waiting for message \n");
-      struct timeval tv = {1, 0};
       selectValue = select(n, &readfds, NULL, NULL, &tv);
       if(selectValue == 0){
         if (mode == 1)
           printf("Sending heartbeat \n");
         sendHeartbeat(sproxySocket);
+        struct timeval tv = {1, 0};
       }
       // foward the message
       if (FD_ISSET(telnetSocket->socket, &readfds)) {
