@@ -5,7 +5,6 @@
 * telnet localhost 5200
 */
 
-
 #include "PortableSocket.h"
 #include <sys/select.h>
 #include "message.h"
@@ -16,11 +15,10 @@ int selectValue;
 int clientPort;
 char *serverAddress;
 int serverPort;
-int AmountHeart
+int AmountHeart;
 
-    //gets the value of n for select
-    int
-    getN(int socket[], int numberOfSockets)
+//gets the value of n for select
+int getN(int socket[], int numberOfSockets)
 {
   int max = -1;
   int i = 0;
@@ -216,8 +214,10 @@ int main(int argc, char *argv[])
       }
       else
       {
-        sendMessage(telnetSocket, '0', 1); // Sending the type HeartBeat
-        sendMessage(telnetSocket, ' ', 1); // Sending a blank message (could send the amount of Heart too)
+        char c = '0';
+        sendMessage(telnetSocket, &c, 1); // Sending the type HeartBeat
+        c = ' ';
+        sendMessage(telnetSocket, &c, 1); // Sending a blank message (could send the amount of Heart too)
       }
     }
     //TODO Implement heartbeat send

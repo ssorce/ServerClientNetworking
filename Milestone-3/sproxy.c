@@ -11,6 +11,7 @@
 int mode = 0;
 int selectValue = 0;
 int serverPort = 0;
+int AmountHeart = 0;
 
 // resets the select method, to be used again
 void reset(fd_set *readfds, int telnetSocket, int clientSocket)
@@ -206,8 +207,10 @@ int main(int argc, char *argv[])
       }
       else
       {
-        sendMessage(telnetSocket, '0', 1); // Sending the type HeartBeat
-        sendMessage(telnetSocket, ' ', 1); // Sending a blank message (could send the amount of Heart too)
+        char c = '0';
+        sendMessage(telnetSocket, &c, 1); // Sending the type HeartBeat
+        c = ' ';
+        sendMessage(telnetSocket, &c, 1); // Sending a blank message (could send the amount of Heart too)
       }
     }
   }
