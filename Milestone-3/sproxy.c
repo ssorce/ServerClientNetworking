@@ -197,12 +197,12 @@ int main(int argc, char *argv[])
       int result = forward(telnetSocket, clientProxy, message,"telnet");
       if(result <= 0)
         break;
-      tv = tv2;
     }
     if (FD_ISSET(clientProxy->socket, &readfds)) {
       int result = recvMessage(clientProxy,telnetSocket);
       if(result <= 0)
         break;
+      tv = tv2;
     }
     if(selectValue == 0){
       printf("Server connection timed out\n");
