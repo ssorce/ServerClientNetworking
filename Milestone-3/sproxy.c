@@ -199,9 +199,6 @@ int main(int argc, char *argv[])
       recvMessage(clientProxy, telnetSocket);
       AmountHeart = 0;
     }
-    else
-    {
-    }
   }
 
   /*

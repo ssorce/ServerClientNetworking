@@ -206,10 +206,6 @@ int main(int argc, char *argv[])
       recvMessage(sproxySocket, telnetSocket);
       AmountHeart = 0;
     }
-    else
-    {
-    }
-    }
     //TODO Implement heartbeat send
   }
 
