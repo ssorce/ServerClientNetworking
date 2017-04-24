@@ -208,7 +208,7 @@ int main(int argc, char *argv[])
         break;
       tv = tv2;
     }
-    if(selectValue == 0){
+    if(selectValue == 0 && clientConnected == 1){
       printf("Server connection timed out\n");
       cpClose(clientProxy);
       clientConnected = 0;
