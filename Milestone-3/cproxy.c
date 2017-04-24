@@ -102,13 +102,15 @@ void reset(fd_set * readfds, int telnetSocket, int serverSocket){
 int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
   // print "recieved from telnet 'message' sending to sproxy"
   int messageSize = cpRecv(sender, message, size);
+  if(cpCheckError(sender) != 0)
+    return -1;
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
   char * type = "1";
   cpSend(reciever, type, 1);
   cpSend(reciever, message, messageSize);
   memset(message, 0, messageSize);
-  return 0;
+  return messageSize;
 }
 
 //forwards a message from the sender socket to the reciever socket
@@ -120,18 +122,21 @@ int sendMessage(struct PortableSocket * reciever, char * message, int messageSiz
   return 0;
 }
 
-void recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
+int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
   char messageAsChar[size];
   char typeS[10];
   memset(messageAsChar, 0, size);
   memset(typeS, 0, 10);
   int messageSize = cpRecv(sender, typeS, 1);
   messageSize = cpRecv(sender, messageAsChar, size);
+  if(messageSize == 0)
+    return 0;
   int type = atoi(typeS);
   if(mode == 1)
     printf("Recived message %s of type = %d\n", messageAsChar, type);
   if(type == MESSAGE)
     sendMessage(reciever,messageAsChar,messageSize);
+  return messageSize;
 }
 
 int main(int argc, char *argv[]) {
@@ -179,18 +184,21 @@ int main(int argc, char *argv[]) {
   /*
   * run the program
   */
-  while (cpCheckError(sproxySocket) == 0)
-  {
+  while (cpCheckError(sproxySocket) == 0 && cpCheckError(telnetSocket) == 0){
       reset(&readfds, telnetSocket->socket, sproxySocket->socket);
       if (mode == 1)
         printf("Waiting for message \n");
       selectValue = select(n, &readfds, NULL, NULL, NULL);
       // foward the message
       if (FD_ISSET(telnetSocket->socket, &readfds)) {
-        forward(telnetSocket,sproxySocket,message,"telnet");
+        int result = forward(telnetSocket,sproxySocket,message,"telnet");
+        if(result <= 0)
+          break;
       }
       if (FD_ISSET(sproxySocket->socket, &readfds)){
-        recvMessage(sproxySocket,telnetSocket);
+        int result = recvMessage(sproxySocket,telnetSocket);
+        if(result <= 0)
+          break;
       }
       //TODO Implement heartbeat send
   }

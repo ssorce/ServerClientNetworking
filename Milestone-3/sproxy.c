@@ -33,13 +33,15 @@ void reset(fd_set * readfds, int telnetSocket, int clientSocket){
 int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
   // print "recieved from telnet 'message' sending to sproxy"
   int messageSize = cpRecv(sender, message, size);
+  if(cpCheckError(sender) != 0)
+    return -1;
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
   char * type = "1";
   cpSend(reciever, type, 1);
   cpSend(reciever, message, messageSize);
   memset(message, 0, messageSize);
-  return 0;
+  return messageSize;
 }
 
 //forwards a message from the sender socket to the reciever socket
@@ -51,18 +53,21 @@ int sendMessage(struct PortableSocket * reciever, char * message, int messageSiz
   return 0;
 }
 
-void recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
+int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
   char messageAsChar[size];
   char typeS[10];
   memset(messageAsChar, 0, size);
   memset(typeS, 0, 10);
   int messageSize = cpRecv(sender, typeS, 1);
   messageSize = cpRecv(sender, messageAsChar, size);
+  if(messageSize == 0)
+    return 0;
   int type = atoi(typeS);
   if(mode == 1)
     printf("Recived message %s of type = %d\n", messageAsChar, type);
   if(type == MESSAGE)
     sendMessage(reciever,messageAsChar,messageSize);
+    return messageSize;
 }
 
 //gets the clientAcceptor socket
@@ -174,17 +179,21 @@ int main(int argc, char *argv[])
   /*
   * run the program
   */
-  while (cpCheckError(telnetSocket) == 0) {
+  while (cpCheckError(clientProxy) == 0 && cpCheckError(telnetSocket) == 0) {
     reset(&readfds, telnetSocket->socket, clientProxy->socket);
     if (mode == 1)
       printf("Waiting for message \n");
     selectValue = select(n, &readfds, NULL, NULL, NULL);
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds)) {
-      forward(telnetSocket, clientProxy, message,"telnet");
+      int result = forward(telnetSocket, clientProxy, message,"telnet");
+      if(result <= 0)
+        break;
     }
     if (FD_ISSET(clientProxy->socket, &readfds)) {
-      recvMessage(clientProxy,telnetSocket);
+      int result = recvMessage(clientProxy,telnetSocket);
+      if(result <= 0)
+        break;
     }
   }
 
