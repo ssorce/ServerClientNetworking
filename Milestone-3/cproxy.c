@@ -197,12 +197,13 @@ int main(int argc, char *argv[]) {
       reset(&readfds, telnetSocket->socket, sproxySocket->socket);
       if (mode == 1)
         printf("Waiting for message \n");
+      struct timeval tv2 = {1, 0};
       selectValue = select(n, &readfds, NULL, NULL, &tv);
       if(selectValue == 0){
         if (mode == 1)
           printf("Sending heartbeat \n");
         sendHeartbeat(sproxySocket);
-        struct timeval tv = {1, 0};
+        tv = tv2;
       }
       // foward the message
       if (FD_ISSET(telnetSocket->socket, &readfds)) {
