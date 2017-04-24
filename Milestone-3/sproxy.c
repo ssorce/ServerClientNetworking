@@ -181,8 +181,7 @@ int main(int argc, char *argv[])
   int n = getN(socketN, 2);
   char message[size];
   memset(message, 0, size);
-  struct timeval tv;
-  tv.tv_sec = 3;
+  struct timeval tv = {3, 0};
 
   /*
   * run the program
@@ -191,17 +190,22 @@ int main(int argc, char *argv[])
     reset(&readfds, telnetSocket->socket, clientProxy->socket);
     if (mode == 1)
       printf("Waiting for message \n");
-    selectValue = select(n, &readfds, NULL, NULL, NULL);
+    struct timeval tv2 = {3, 0};
+    selectValue = select(n, &readfds, NULL, NULL, &tv);
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds)) {
       int result = forward(telnetSocket, clientProxy, message,"telnet");
       if(result <= 0)
         break;
+      tv = tv2;
     }
     if (FD_ISSET(clientProxy->socket, &readfds)) {
       int result = recvMessage(clientProxy,telnetSocket);
       if(result <= 0)
         break;
+    }
+    if(selectValue == 0){
+      printf("Server connection timed out\n");
     }
   }
 
