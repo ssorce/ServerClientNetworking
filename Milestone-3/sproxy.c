@@ -40,9 +40,11 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
     return -1;
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
-  char * type = "1";
-  cpSend(reciever, type, 1);
-  cpSend(reciever, message, messageSize);
+  if(clientConnected == 1){
+    char * type = "1";
+    cpSend(reciever, type, 1);
+    cpSend(reciever, message, messageSize);
+  }
   memset(message, 0, messageSize);
   return messageSize;
 }
