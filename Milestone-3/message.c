@@ -9,7 +9,7 @@ void serialize(struct message * message, char * output){
 void deserialize(char * serializedMessage, struct message * output){
   if(strlen(serializedMessage)>0){
     output->type = serializedMessage[0] - '0';
-    memcpy(output->message, &serializedMessage[1], (strlen(serializedMessage)-1));
+    memcpy(output->message, &serializedMessage[1], strlen(serializedMessage)-1);
   } else {
     output->type = MESSAGE;
     memset(output->message, 0, 1024);

@@ -32,21 +32,23 @@ void reset(fd_set * readfds, int telnetSocket, int clientSocket){
 //forwards a message from the sender socket to the reciever socket
 int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
   // print "recieved from telnet 'message' sending to sproxy"
+  int messageSize = cpRecv(sender, message, size);
+  if (mode == 1)
+    printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
   struct message messageStruct;
   messageStruct.type = MESSAGE;
   strcpy(messageStruct.message,message);
   char serialized[size];
   serialize(&messageStruct, serialized);
-  int messageSize = cpRecv(sender, serialized, size);
-  if (mode == 1)
-    printf("Recieved from %s: '%s'\n", senderName, message);
-  cpSend(reciever, message, messageSize);
+  cpSend(reciever, serialized, messageSize+1);
   memset(message, 0, messageSize);
   return 0;
 }
 
 //forwards a message from the sender socket to the reciever socket
 int sendMessage(struct PortableSocket * reciever, char * message){
+  if(mode == 1)
+    printf("Sending '%s' to telnet\n",message);
   cpSend(reciever, message, size);
   memset(message, 0, size);
   return 0;
@@ -54,8 +56,11 @@ int sendMessage(struct PortableSocket * reciever, char * message){
 
 void getMessage(struct message * message, struct PortableSocket * sender){
   char messageAsChar[size];
+  memset(messageAsChar, 0, size);
   int messageSize = cpRecv(sender, messageAsChar, size);
   deserialize(messageAsChar,message);
+  if(mode == 1)
+    printf("Recived message %s of type = %d %s\n", messageAsChar, message->type, message->message);
 }
 
 //gets the clientAcceptor socket
@@ -172,7 +177,7 @@ int main(int argc, char *argv[])
     reset(&readfds, telnetSocket->socket, clientProxy->socket);
     if (mode == 1)
       printf("Waiting for message \n");
-    selectValue = select(n, &readfds, NULL, NULL, &tv);
+    selectValue = select(n, &readfds, NULL, NULL, NULL);
     // foward the message
     if (FD_ISSET(telnetSocket->socket, &readfds)) {
       forward(telnetSocket, clientProxy, message,"telnet");
