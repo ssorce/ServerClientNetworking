@@ -139,6 +139,11 @@ int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever
   return messageSize;
 }
 
+void sendHeartbeat(struct PortableSocket * reciever){
+  char * type = "0";
+  cpSend(reciever, type, 1);
+}
+
 int main(int argc, char *argv[]) {
   if (argc < 4)
     return 1;
@@ -188,7 +193,10 @@ int main(int argc, char *argv[]) {
       reset(&readfds, telnetSocket->socket, sproxySocket->socket);
       if (mode == 1)
         printf("Waiting for message \n");
-      selectValue = select(n, &readfds, NULL, NULL, NULL);
+      selectValue = select(n, &readfds, NULL, NULL, &tv);
+      if(selectValue == 0){
+        sendHeartbeat(sproxySocket);
+      }
       // foward the message
       if (FD_ISSET(telnetSocket->socket, &readfds)) {
         int result = forward(telnetSocket,sproxySocket,message,"telnet");
@@ -200,7 +208,6 @@ int main(int argc, char *argv[]) {
         if(result <= 0)
           break;
       }
-      //TODO Implement heartbeat send
   }
 
   /*
