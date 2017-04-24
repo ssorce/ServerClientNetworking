@@ -53,6 +53,11 @@ int sendMessage(struct PortableSocket * reciever, char * message, int messageSiz
   return 0;
 }
 
+void sendHeartbeat(struct PortableSocket * reciever){
+  char * type = "0";
+  cpSend(reciever, type, 1);
+}
+
 int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
   char messageAsChar[size];
   char typeS[10];
@@ -68,7 +73,7 @@ int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever
       return 0;
     sendMessage(reciever,messageAsChar,messageSize);
   } else if (type == HEARTBEAT){
-    printf("recieved heartbeat\n");
+    sendHeartbeat(sender);
   }
   return messageSize;
 }

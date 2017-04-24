@@ -128,14 +128,17 @@ int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever
   memset(messageAsChar, 0, size);
   memset(typeS, 0, 10);
   int messageSize = cpRecv(sender, typeS, 1);
-  messageSize = cpRecv(sender, messageAsChar, size);
-  if(messageSize == 0)
-    return 0;
   int type = atoi(typeS);
   if(mode == 1)
     printf("Recived message %s of type = %d\n", messageAsChar, type);
-  if(type == MESSAGE)
+  if(type == MESSAGE){
+    messageSize = cpRecv(sender, messageAsChar, size);
+    if(messageSize == 0)
+      return 0;
     sendMessage(reciever,messageAsChar,messageSize);
+  } else if (type == HEARTBEAT){
+    printf("Recived heartbeat from server");
+  }
   return messageSize;
 }
 
