@@ -242,7 +242,7 @@ int main(int argc, char *argv[])
     {
       cpClose(sproxySocket);
       sproxySocket = getSproxy();
-      heartbeatSinceLastReply = 0;
+      heartbeatsSinceLastReply = 0;
     }
   }
   if (cpCheckError(sproxySocket) != 0 && mode == 1)
