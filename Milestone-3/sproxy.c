@@ -3,7 +3,6 @@
 *  sproxy 6200
 */
 
-
 /*
 * Keeps killing connection when telnet start.
 *
@@ -22,14 +21,15 @@ int serverPort = 0;
 int clientConnected = 0;
 
 // resets the select method, to be used again
-void reset(fd_set * readfds, int telnetSocket, int clientSocket, int clientAcceptor){
+void reset(fd_set *readfds, int telnetSocket, int clientSocket, int clientAcceptor)
+{
   FD_CLR(telnetSocket, readfds);
-  if(clientConnected == 1)
+  if (clientConnected == 1)
     FD_CLR(clientSocket, readfds);
   else
     FD_CLR(clientAcceptor, readfds);
   FD_ZERO(readfds);
-  if(clientConnected == 1)
+  if (clientConnected == 1)
     FD_SET(clientSocket, readfds);
   else
     FD_SET(clientAcceptor, readfds);
@@ -37,15 +37,17 @@ void reset(fd_set * readfds, int telnetSocket, int clientSocket, int clientAccep
 }
 
 //forwards a message from the sender socket to the reciever socket
-int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
+int forward(struct PortableSocket *sender, struct PortableSocket *reciever, char *message, char *senderName)
+{
   // print "recieved from telnet 'message' sending to sproxy"
   int messageSize = cpRecv(sender, message, size);
-  if(cpCheckError(sender) != 0)
+  if (cpCheckError(sender) != 0)
     return -1;
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
-  if(clientConnected == 1){
-    char * type = "1";
+  if (clientConnected == 1)
+  {
+    char *type = "1";
     cpSend(reciever, type, 1);
     cpSend(reciever, message, messageSize);
   }
@@ -54,47 +56,56 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
 }
 
 //forwards a message from the sender socket to the reciever socket
-int sendMessage(struct PortableSocket * reciever, char * message, int messageSize){
-  if(mode == 1)
-    printf("Sending '%s' to telnet\n",message);
+int sendMessage(struct PortableSocket *reciever, char *message, int messageSize)
+{
+  if (mode == 1)
+    printf("Sending '%s' to telnet\n", message);
   cpSend(reciever, message, messageSize);
   memset(message, 0, size);
   return 0;
 }
 
-void sendHeartbeat(struct PortableSocket * reciever){
-  char * type = "0";
+void sendHeartbeat(struct PortableSocket *reciever)
+{
+  char *type = "0";
   cpSend(reciever, type, 1);
 }
 
-int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
+int recvMessage(struct PortableSocket *sender, struct PortableSocket *reciever)
+{
   char messageAsChar[size];
   char typeS[10];
   memset(messageAsChar, 0, size);
   memset(typeS, 0, 10);
   int messageSize = cpRecv(sender, typeS, 1);
   int type = atoi(typeS);
-  if(mode == 1)
+  if (mode == 1)
     printf("Recived message %s of type = %d\n", messageAsChar, type);
-  if(type == MESSAGE){
+  if (type == MESSAGE)
+  {
     messageSize = cpRecv(sender, messageAsChar, size);
-    if(messageSize == 0)
+    if (messageSize == 0)
       return 0;
-    sendMessage(reciever,messageAsChar,messageSize);
-  } else if (type == HEARTBEAT){
+    sendMessage(reciever, messageAsChar, messageSize);
+  }
+  else if (type == HEARTBEAT)
+  {
     sendHeartbeat(sender);
   }
   return messageSize;
 }
 
 //gets the clientAcceptor socket
-struct PortableSocket * getClientAcceptor(int serverPort){
-  struct PortableSocket * clientAcceptor = cpSocket(TCP, "localhost", serverPort);
-  if (cpCheckError(clientAcceptor) != 0) {
+struct PortableSocket *getClientAcceptor(int serverPort)
+{
+  struct PortableSocket *clientAcceptor = cpSocket(TCP, "localhost", serverPort);
+  if (cpCheckError(clientAcceptor) != 0)
+  {
     fprintf(stderr, "Failed to create client acceptor socket \n");
     exit(1);
   }
-  else if (mode == 1) {
+  else if (mode == 1)
+  {
     printf("Client acceptor socket created\n");
   }
   cpBind(clientAcceptor);
@@ -103,13 +114,16 @@ struct PortableSocket * getClientAcceptor(int serverPort){
 }
 
 //gets the client socket
-struct PortableSocket * getClient(struct PortableSocket * clientAcceptor){
-  struct PortableSocket * client = cpAccept(clientAcceptor);
-  if (cpCheckError(client) != 0){
+struct PortableSocket *getClient(struct PortableSocket *clientAcceptor)
+{
+  struct PortableSocket *client = cpAccept(clientAcceptor);
+  if (cpCheckError(client) != 0)
+  {
     fprintf(stderr, "Failed to create client socket \n");
     exit(1);
   }
-  else if (mode == 1){
+  else if (mode == 1)
+  {
     printf("Client socket created\n");
   }
   clientConnected = 1;
@@ -117,32 +131,38 @@ struct PortableSocket * getClient(struct PortableSocket * clientAcceptor){
 }
 
 //gets the client socket
-struct PortableSocket * getTelnet(){
+struct PortableSocket *getTelnet()
+{
   struct PortableSocket *telnetSocket = cpSocket(TCP, "127.0.0.1", 23);
   cpConnect(telnetSocket);
-  if (cpCheckError(telnetSocket) != 0){
+  if (cpCheckError(telnetSocket) != 0)
+  {
     fprintf(stderr, "Failed to create telnet acceptor socket \n");
     exit(1);
   }
-  else if (mode == 1){
+  else if (mode == 1)
+  {
     printf("Telnet socket created\n");
   }
   return telnetSocket;
 }
 
 //gets the value of n for select
-int getN(int socket[], int numberOfSockets){
+int getN(int socket[], int numberOfSockets)
+{
   int max = -1;
   int i = 0;
-  for(i = 0; i < numberOfSockets; i++){
-    if(socket[i] > max)
+  for (i = 0; i < numberOfSockets; i++)
+  {
+    if (socket[i] > max)
       max = socket[i];
   }
   return max + 1;
 }
 
 //parses the input
-void parseInput(int argc, char *argv[]){
+void parseInput(int argc, char *argv[])
+{
   int current = 1;
   selectValue = 0;
   if (argc == 3)
@@ -173,15 +193,15 @@ int main(int argc, char *argv[])
   */
   if (mode == 1)
     printf("connecting: client\n");
-  struct PortableSocket * clientAcceptor = getClientAcceptor(serverPort);
-  struct PortableSocket * clientProxy = getClient(clientAcceptor);
+  struct PortableSocket *clientAcceptor = getClientAcceptor(serverPort);
+  struct PortableSocket *clientProxy = getClient(clientAcceptor);
 
   /*
   * Connection to the local telnet
   */
   if (mode == 1)
     printf("connecting: telnet\n");
-    struct PortableSocket * telnetSocket = getTelnet();
+  struct PortableSocket *telnetSocket = getTelnet();
 
   /*
   * set up data for program
@@ -196,7 +216,8 @@ int main(int argc, char *argv[])
   /*
   * run the program
   */
-  while (cpCheckError(clientProxy) == 0 && cpCheckError(telnetSocket) == 0) {
+  while (cpCheckError(clientProxy) == 0 && cpCheckError(telnetSocket) == 0)
+  {
     reset(&readfds, telnetSocket->socket, clientProxy->socket, clientAcceptor->socket);
     if (mode == 1)
       printf("Waiting for message \n");
@@ -204,32 +225,38 @@ int main(int argc, char *argv[])
     struct timeval tv3 = {30, 0};
     selectValue = select(n, &readfds, NULL, NULL, &tv);
     // foward the message
-    if (FD_ISSET(telnetSocket->socket, &readfds)) {
-      int result = forward(telnetSocket, clientProxy, message,"telnet");
-      if(result <= 0)
+    if (FD_ISSET(telnetSocket->socket, &readfds))
+    {
+      int result = forward(telnetSocket, clientProxy, message, "telnet");
+      if (result <= 0)
         break;
     }
-    if (clientConnected == 1 && FD_ISSET(clientProxy->socket, &readfds)) {
-      int result = recvMessage(clientProxy,telnetSocket);
-      if(result <= 0)
+    if (clientConnected == 1 && FD_ISSET(clientProxy->socket, &readfds))
+    {
+      int result = recvMessage(clientProxy, telnetSocket);
+      if (result <= 0)
         break;
       tv = tv2;
     }
-    if(clientConnected == 0 && FD_ISSET(clientAcceptor->socket, &readfds)){
+    if (clientConnected == 0 && FD_ISSET(clientAcceptor->socket, &readfds))
+    {
       clientProxy = getClient(clientAcceptor);
       clientConnected = 1;
       int socketN[] = {telnetSocket->socket, clientProxy->socket};
       n = getN(socketN, 2);
-      if (mode == 1) {
+      if (mode == 1)
+      {
         printf("established new connection with client\n");
       }
     }
-    if(selectValue == 0 && clientConnected == 0){
+    if (selectValue == 0 && clientConnected == 0)
+    {
       printf("Timedout\n");
       break;
     }
-    if(selectValue == 0 && clientConnected == 1){
-      if(mode == 1)
+    if (selectValue == 0 && clientConnected == 1)
+    {
+      if (mode == 1)
         printf("Server connection timed out\n");
       cpClose(clientProxy);
       clientConnected = 0;
@@ -237,6 +264,14 @@ int main(int argc, char *argv[])
       n = getN(socketN, 2);
       tv = tv3;
     }
+  }
+  if (cpCheckError(clientProxy) != 0 && mode == 1)
+  {
+    printf("sproxySocket gave check error 0\n");
+  }
+  else if (cpCheckError(telnetSocket) != 0 && mode == 1)
+  {
+    printf("telnetSocket gave check error 0\n");
   }
 
   /*
