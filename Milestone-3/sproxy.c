@@ -22,13 +22,17 @@ int serverPort = 0;
 int clientConnected = 0;
 
 // resets the select method, to be used again
-void reset(fd_set * readfds, int telnetSocket, int clientSocket){
+void reset(fd_set * readfds, int telnetSocket, int clientSocket, int clientAcceptor){
   FD_CLR(telnetSocket, readfds);
   if(clientConnected == 1)
     FD_CLR(clientSocket, readfds);
+  else
+    FD_CLR(clientAcceptor, readfds);
   FD_ZERO(readfds);
   if(clientConnected == 1)
     FD_SET(clientSocket, readfds);
+  else
+    FD_SET(clientAcceptor, readfds);
   FD_SET(telnetSocket, readfds);
 }
 
@@ -193,7 +197,7 @@ int main(int argc, char *argv[])
   * run the program
   */
   while (cpCheckError(clientProxy) == 0 && cpCheckError(telnetSocket) == 0) {
-    reset(&readfds, telnetSocket->socket, clientProxy->socket);
+    reset(&readfds, telnetSocket->socket, clientProxy->socket, clientAcceptor->socket);
     if (mode == 1)
       printf("Waiting for message \n");
     struct timeval tv2 = {3, 0};
@@ -211,16 +215,26 @@ int main(int argc, char *argv[])
         break;
       tv = tv2;
     }
+    if(clientConnected == 0 && FD_ISSET(clientAcceptor->socket, &readfds)){
+      clientProxy = getClient(clientAcceptor);
+      clientConnected = 1;
+      int socketN[] = {telnetSocket->socket, clientProxy->socket};
+      n = getN(socketN, 2);
+      if (mode == 1) {
+        printf("established new connection with client\n");
+      }
+    }
     if(selectValue == 0 && clientConnected == 0){
       printf("Timedout\n");
       break;
     }
     if(selectValue == 0 && clientConnected == 1){
-      printf("Server connection timed out\n");
+      if(mode == 1)
+        printf("Server connection timed out\n");
       cpClose(clientProxy);
       clientConnected = 0;
-      int socketN[] = {telnetSocket->socket};
-      n = getN(socketN, 1);
+      int socketN[] = {telnetSocket->socket, clientAcceptor->socket};
+      n = getN(socketN, 2);
       tv = tv3;
     }
   }
