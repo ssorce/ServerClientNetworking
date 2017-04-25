@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
   }
   if (cpCheckError(clientProxy) != 0 && mode == 1)
   {
-    printf("sproxySocket gave check error\n");
+    printf("cproxySocket gave check error\n");
   }
   else if (cpCheckError(telnetSocket) != 0 && mode == 1)
   {
