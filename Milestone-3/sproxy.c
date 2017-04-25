@@ -39,7 +39,6 @@ void reset(fd_set * readfds, int telnetSocket, int clientSocket, int clientAccep
 //forwards a message from the sender socket to the reciever socket
 int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
   // print "recieved from telnet 'message' sending to sproxy"
-  memset(message, 0, size);
   int messageSize = cpRecv(sender, message, size);
   if(cpCheckError(sender) != 0)
     return -1;
@@ -50,7 +49,7 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
     cpSend(reciever, type, 1);
     cpSend(reciever, message, messageSize);
   }
-  memset(message, 0, size);
+  memset(message, 0, messageSize);
   return messageSize;
 }
 

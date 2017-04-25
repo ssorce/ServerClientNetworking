@@ -102,7 +102,6 @@ void reset(fd_set * readfds, int telnetSocket, int serverSocket){
 //forwards a message from the sender socket to the reciever socket
 int forward(struct PortableSocket * sender, struct PortableSocket * reciever, char * message, char * senderName){
   // print "recieved from telnet 'message' sending to sproxy"
-  memset(message, 0, size);
   int messageSize = cpRecv(sender, message, size);
   if(cpCheckError(sender) != 0)
     return -1;
@@ -111,7 +110,7 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
   char * type = "1";
   cpSend(reciever, type, 1);
   cpSend(reciever, message, messageSize);
-  memset(message, 0, size);
+  memset(message, 0, messageSize);
   return messageSize;
 }
 
@@ -211,16 +210,15 @@ int main(int argc, char *argv[]) {
         int result = forward(telnetSocket,sproxySocket,message,"telnet");
         if(result <= 0)
           break;
-        continue;
       }
       if (FD_ISSET(sproxySocket->socket, &readfds)){
         int result = recvMessage(sproxySocket,telnetSocket);
         if(result <= 0)
           break;
-        continue;
       }
       if(heartbeatsSinceLastReply > 3){
-        printf("heartbeatsSinceLastReply = %d\n", heartbeatsSinceLastReply);
+        cpClose(sproxySocket);
+        sproxySocket = getSproxy();
       }
   }
 
