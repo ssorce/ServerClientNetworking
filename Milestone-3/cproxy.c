@@ -224,6 +224,7 @@ int main(int argc, char *argv[]) {
       if(heartbeatsSinceLastReply > 6){
         cpClose(sproxySocket);
         sproxySocket = getSproxy();
+        heartbeatsSinceLastReply = 0;
       }
   }
 
