@@ -215,6 +215,8 @@ int main(int argc, char *argv[]) {
           break;
       }
       if(heartbeatsSinceLastReply > 6){
+        if(mode == 1)
+          printf("Attempting reconnect\n");
         cpClose(sproxySocket);
         sproxySocket = getSproxy();
         struct PortableSocket *sproxySocket = getSproxy();

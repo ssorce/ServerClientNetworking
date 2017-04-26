@@ -18,13 +18,14 @@ void sendMessageStruct(struct message * this, struct PortableSocket * reciever){
 //Deserializes the message back into a struct
 int recvMessageStruct(struct message * this, struct PortableSocket * sender){
   char header[10];
-  memset(this->payload, 0, 1024);
   memset(header, 0, 10);
   cpRecv(sender, header, 10);
   int type;
   int length;
   sscanf(header,"%d %d",&type,&length);
-  int messagelength = cpRecv(sender, this->payload, length);
+  if(length > 0) {
+    int messagelength = cpRecv(sender, this->payload, length);
+  }
   initMessageStruct(this,type,length,this->payload);
   printf("Recieved message of type %d length %d payload = %s\n", type,length,this->payload);
 }
