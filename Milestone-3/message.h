@@ -1,9 +1,9 @@
 #ifndef MESSAGE_HEADER
 #define MESSAGE_HEADER
-#define HEARTBEAT -1
-#define MESSAGE -2
-#define NEW_CONNECTION -3
-#define RECONNECT -4
+#define HEARTBEAT 0
+#define MESSAGE 1
+#define NEW_CONNECTION 2
+#define RECONNECT 3
 
 #include <string.h>
 #include <stdio.h>
