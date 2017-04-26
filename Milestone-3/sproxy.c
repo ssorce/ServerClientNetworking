@@ -267,7 +267,7 @@ int main(int argc, char *argv[])
       if (mode == 1)
         printf("Server connection timed out\n");
       cpClose(clientProxy);
-      cpListen(clientAcceptor,1);
+      cpListen(clientAcceptor,5);
       clientConnected = 0;
       int socketN[] = {telnetSocket->socket, clientAcceptor->socket};
       n = getN(socketN, 2);
