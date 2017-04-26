@@ -198,7 +198,7 @@ int main(int argc, char *argv[])
   if (mode == 1)
     printf("connecting: telnet\n");
   struct message firstConnect;
-  char empty[0];
+  char empty[1024];
   firstConnect.payload = empty;
   recvMessageStruct(&firstConnect, clientProxy);
   struct PortableSocket * telnetSocket = getTelnet();
