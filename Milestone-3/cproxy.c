@@ -104,8 +104,10 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
     return -1;
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
-  char * type = "1";
-  cpSend(reciever, type, 1);
+  char type[10];
+  memset(type, 0 , 10);
+  sprintf(type,"%d %d",MESSAGE,messageSize);
+  cpSend(reciever, type, 10);
   cpSend(reciever, message, messageSize);
   memset(message, 0, messageSize);
   return messageSize;
@@ -125,12 +127,17 @@ int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever
   char typeS[10];
   memset(messageAsChar, 0, size);
   memset(typeS, 0, 10);
-  int messageSize = cpRecv(sender, typeS, 1);
-  int type = atoi(typeS);
+  int messageSize = cpRecv(sender, typeS, 10);
+  int type;
+  sscanf(typeS,"%d",&type);
   if(mode == 1)
     printf("Recived message %s of type = %d\n", messageAsChar, type);
   if(type == MESSAGE){
-    messageSize = cpRecv(sender, messageAsChar, size);
+    int length;
+    sscanf(typeS,"%d %d",&type,&length);
+    if(mode == 1)
+      printf("recived message of type MESSAGE of length = %d\n", length);
+    messageSize = cpRecv(sender, messageAsChar, length);
     if(messageSize == 0)
       return 0;
     sendMessage(reciever,messageAsChar,messageSize);
@@ -143,7 +150,8 @@ int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever
 
 void sendHeartbeat(struct PortableSocket * reciever){
   heartbeatsSinceLastReply++;
-  char * type = "0";
+  char type[10];
+  type[0]='0';
   cpSend(reciever, type, 1);
 }
 
