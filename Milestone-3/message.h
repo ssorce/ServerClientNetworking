@@ -7,17 +7,19 @@
 
 #include <string.h>
 #include <stdio.h>
+#include "PortableSocket.h"
 
 typedef struct message
 {
   int type;
-  char message[1024];
+  int length;
+  char * payload;
 } message;
 
-//Serializes the message in order to send over the network
-void serialize(struct message *message, char *output);
+void initMessageStruct(struct message * this, int type, int length, char * payload);
 
-//Deserializes the message back into a struct
-void deserialize(char *message, struct message *output);
+void sendMessageStruct(struct message * this, struct PortableSocket * reciever);
+
+int recvMessageStruct(struct message * this, struct PortableSocket * sender);
 
 #endif

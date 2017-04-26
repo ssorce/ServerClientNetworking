@@ -104,12 +104,9 @@ int forward(struct PortableSocket * sender, struct PortableSocket * reciever, ch
     return -1;
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
-  char type[10];
-  memset(type, 0 , 10);
-  sprintf(type,"%d %d",MESSAGE,messageSize);
-  cpSend(reciever, type, 10);
-  cpSend(reciever, message, messageSize);
-  memset(message, 0, messageSize);
+  struct message messageStruct;
+  initMessageStruct(&messageStruct,MESSAGE,messageSize,message);
+  sendMessageStruct(&messageStruct,reciever);
   return messageSize;
 }
 
@@ -123,36 +120,25 @@ int sendMessage(struct PortableSocket * reciever, char * message, int messageSiz
 }
 
 int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever){
-  char messageAsChar[size];
-  char typeS[10];
-  memset(messageAsChar, 0, size);
-  memset(typeS, 0, 10);
-  int messageSize = cpRecv(sender, typeS, 10);
-  int type;
-  sscanf(typeS,"%d",&type);
-  if(mode == 1)
-    printf("Recived message %s of type = %d\n", messageAsChar, type);
-  if(type == MESSAGE){
-    int length;
-    sscanf(typeS,"%d %d",&type,&length);
-    if(mode == 1)
-      printf("recived message of type MESSAGE of length = %d\n", length);
-    messageSize = cpRecv(sender, messageAsChar, length);
-    if(messageSize == 0)
-      return 0;
-    sendMessage(reciever,messageAsChar,messageSize);
-  } else if (type == HEARTBEAT){
+  struct message messageStruct;
+  char message[size];
+  messageStruct.payload = message;
+  recvMessageStruct(&messageStruct, sender);
+  if(messageStruct.type == MESSAGE){
+    sendMessage(reciever,messageStruct.payload,messageStruct.length);
+  } else if (messageStruct.type == HEARTBEAT){
     printf("recived heartbeat reply\n");
     heartbeatsSinceLastReply = 0;
+    return 1;
   }
-  return messageSize;
+  return messageStruct.length;
 }
 
 void sendHeartbeat(struct PortableSocket * reciever){
   heartbeatsSinceLastReply++;
-  char type[10];
-  type[0]='0';
-  cpSend(reciever, type, 1);
+  struct message messageStruct;
+  initMessageStruct(&messageStruct,HEARTBEAT,0,NULL);
+  sendMessageStruct(&messageStruct,reciever);
 }
 
 int main(int argc, char *argv[]) {
@@ -186,6 +172,9 @@ int main(int argc, char *argv[]) {
   if (mode == 1)
     printf("Attempting to create sproxy socket\n");
   struct PortableSocket *sproxySocket = getSproxy();
+  struct message newConnectStruct;
+  initMessageStruct(&newConnectStruct,NEW_CONNECTION,0,NULL);
+  sendMessageStruct(&newConnectStruct, sproxySocket);
   /*
   * set up data for the program
   */
@@ -224,6 +213,10 @@ int main(int argc, char *argv[]) {
       if(heartbeatsSinceLastReply > 6){
         cpClose(sproxySocket);
         sproxySocket = getSproxy();
+        struct PortableSocket *sproxySocket = getSproxy();
+        struct message reconnectStruct;
+        initMessageStruct(&reconnectStruct,RECONNECT,0,NULL);
+        sendMessageStruct(&reconnectStruct, sproxySocket);
         heartbeatsSinceLastReply = 0;
       }
   }

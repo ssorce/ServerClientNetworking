@@ -45,16 +45,10 @@ int forward(struct PortableSocket *sender, struct PortableSocket *reciever, char
     return -1;
   if (mode == 1)
     printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
-  if (clientConnected == 1)
-  {
-    char type[10];
-    memset(type, 0 , 10);
-    sprintf(type,"%d %d",MESSAGE,messageSize);
-    cpSend(reciever, type, 10);
-    int sent = cpSend(reciever, message, messageSize);
-    if(mode == 1 && sent < 0){
-      printf("Sending error, storing value\n");
-    }
+  if (clientConnected == 1) {
+    struct message messageStruct;
+    initMessageStruct(&messageStruct,MESSAGE,messageSize,message);
+    sendMessageStruct(&messageStruct,reciever);
   }
   memset(message, 0, messageSize);
   return messageSize;
@@ -72,38 +66,27 @@ int sendMessage(struct PortableSocket *reciever, char *message, int messageSize)
 
 void sendHeartbeat(struct PortableSocket *reciever)
 {
-  char type[10];
-  type[0]='0';
-  cpSend(reciever, type, 1);
+  struct message messageStruct;
+  initMessageStruct(&messageStruct,HEARTBEAT,0,NULL);
+  sendMessageStruct(&messageStruct,reciever);
 }
 
 int recvMessage(struct PortableSocket *sender, struct PortableSocket *reciever)
 {
-  char messageAsChar[size];
-  char typeS[10];
-  memset(messageAsChar, 0, size);
-  memset(typeS, 0, 10);
-  int messageSize = cpRecv(sender, typeS, 10);
-  int type;
-  sscanf(typeS,"%d",&type);
+  struct message messageStruct;
+  char message[size];
+  messageStruct.payload = message;
+  recvMessageStruct(&messageStruct, sender);
   if (mode == 1)
-    printf("Recived message %s of type = %d\n", messageAsChar, type);
-  if (type == MESSAGE)
-  {
-    int length;
-    sscanf(typeS,"%d %d",&type,&length);
-    if(mode == 1)
-      printf("recived message of type MESSAGE of length = %d\n", length);
-    messageSize = cpRecv(sender, messageAsChar, length);
-    if (messageSize == 0)
-      return 0;
-    sendMessage(reciever, messageAsChar, messageSize);
+    printf("Recived message %s of type = %d\n", messageStruct.payload, messageStruct.type);
+  if (messageStruct.type == MESSAGE){
+    sendMessage(reciever,messageStruct.payload,messageStruct.length);
   }
-  else if (type == HEARTBEAT)
-  {
+  else if (messageStruct.type == HEARTBEAT){
     sendHeartbeat(sender);
+    return 1;
   }
-  return messageSize;
+  return messageStruct.length;
 }
 
 //gets the clientAcceptor socket
@@ -212,6 +195,10 @@ int main(int argc, char *argv[])
   */
   if (mode == 1)
     printf("connecting: telnet\n");
+  struct message firstConnect;
+  char empty[0];
+  firstConnect.payload = empty;
+  recvMessageStruct(&firstConnect, clientProxy);
   struct PortableSocket *telnetSocket = getTelnet();
 
   /*
@@ -255,9 +242,18 @@ int main(int argc, char *argv[])
       clientConnected = 1;
       int socketN[] = {telnetSocket->socket, clientProxy->socket};
       n = getN(socketN, 2);
-      if (mode == 1)
-      {
+      if (mode == 1) {
         printf("established new connection with client\n");
+      }
+      struct message messageStruct;
+      char message[size];
+      messageStruct.payload = message;
+      recvMessageStruct(&messageStruct, clientProxy);
+      if(messageStruct.type == NEW_CONNECTION){
+        cpClose(telnetSocket);
+        struct PortableSocket *telnetSocket = getTelnet();
+        int socketN[] = {telnetSocket->socket, clientProxy->socket};
+        n = getN(socketN, 2);
       }
     }
     if (selectValue == 0 && clientConnected == 0)
