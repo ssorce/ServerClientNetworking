@@ -67,7 +67,9 @@ int sendMessage(struct PortableSocket *reciever, char *message, int messageSize)
 void sendHeartbeat(struct PortableSocket *reciever)
 {
   struct message messageStruct;
-  initMessageStruct(&messageStruct,HEARTBEAT,0,NULL);
+  char empty[0];
+  empty[0] = '\0';
+  initMessageStruct(&messageStruct,HEARTBEAT,0,empty);
   sendMessageStruct(&messageStruct,reciever);
 }
 

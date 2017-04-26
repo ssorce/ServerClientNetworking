@@ -137,7 +137,9 @@ int recvMessage(struct PortableSocket * sender, struct PortableSocket * reciever
 void sendHeartbeat(struct PortableSocket * reciever){
   heartbeatsSinceLastReply++;
   struct message messageStruct;
-  initMessageStruct(&messageStruct,HEARTBEAT,0,NULL);
+  char empty[0];
+  empty[0] = '\0';
+  initMessageStruct(&messageStruct,HEARTBEAT,0,empty);
   sendMessageStruct(&messageStruct,reciever);
 }
 
@@ -173,7 +175,9 @@ int main(int argc, char *argv[]) {
     printf("Attempting to create sproxy socket\n");
   struct PortableSocket *sproxySocket = getSproxy();
   struct message newConnectStruct;
-  initMessageStruct(&newConnectStruct,NEW_CONNECTION,0,NULL);
+  char empty[0];
+  empty[0] = '\0';
+  initMessageStruct(&newConnectStruct,NEW_CONNECTION,0,empty);
   sendMessageStruct(&newConnectStruct, sproxySocket);
   /*
   * set up data for the program
@@ -215,7 +219,9 @@ int main(int argc, char *argv[]) {
         sproxySocket = getSproxy();
         struct PortableSocket *sproxySocket = getSproxy();
         struct message reconnectStruct;
-        initMessageStruct(&reconnectStruct,RECONNECT,0,NULL);
+        char empty[0];
+        empty[0] = '\0';
+        initMessageStruct(&reconnectStruct,RECONNECT,0,empty);
         sendMessageStruct(&reconnectStruct, sproxySocket);
         heartbeatsSinceLastReply = 0;
       }
