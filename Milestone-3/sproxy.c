@@ -201,7 +201,7 @@ int main(int argc, char *argv[])
   char empty[0];
   firstConnect.payload = empty;
   recvMessageStruct(&firstConnect, clientProxy);
-  struct PortableSocket *telnetSocket = getTelnet();
+  struct PortableSocket * telnetSocket = getTelnet();
 
   /*
   * set up data for program
@@ -212,7 +212,8 @@ int main(int argc, char *argv[])
   char message[size];
   memset(message, 0, size);
   struct timeval tv = {3, 0};
-
+  if(mode == 1)
+    printf("Setup complete\n");
   /*
   * run the program
   */
