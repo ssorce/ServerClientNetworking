@@ -51,7 +51,10 @@ int forward(struct PortableSocket *sender, struct PortableSocket *reciever, char
     memset(type, 0 , 10);
     sprintf(type,"%d %d",MESSAGE,messageSize);
     cpSend(reciever, type, 10);
-    cpSend(reciever, message, messageSize);
+    int sent = cpSend(reciever, message, messageSize);
+    if(mode == 1 && sent < 0){
+      printf("Sending error, storing value\n");
+    }
   }
   memset(message, 0, messageSize);
   return messageSize;
