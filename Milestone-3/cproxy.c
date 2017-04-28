@@ -95,9 +95,11 @@ struct PortableSocket * getSproxy(){
 void reset(fd_set * readfds, int telnetSocket, int serverSocket){
   FD_CLR(telnetSocket, readfds);
   FD_CLR(serverSocket, readfds);
+  FD_CLR(telnetAcceptorSocket->socket, readfds);
   FD_ZERO(readfds);
   FD_SET(serverSocket, readfds);
   FD_SET(telnetSocket, readfds);
+  FD_SET(telnetAcceptorSocket->socket, readfds);
 }
 
 //forwards a message from the sender socket to the reciever socket
