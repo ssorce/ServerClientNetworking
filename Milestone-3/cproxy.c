@@ -219,6 +219,7 @@ int main(int argc, char *argv[]) {
           break;
       }
       if(FD_ISSET(telnetAcceptorSocket->socket, &readfds)){
+        printf("Detected new telnet session");
         cpClose(telnetSocket);
         telnetSocket = getTelnet(telnetAcceptorSocket);
         struct message reconnectStruct;
@@ -226,6 +227,8 @@ int main(int argc, char *argv[]) {
         empty[0] = '\0';
         initMessageStruct(&reconnectStruct,NEW_CONNECTION,0,empty);
         sendMessageStruct(&reconnectStruct, sproxySocket);
+        int socketN[] = {sproxySocket->socket, telnetSocket->socket, telnetAcceptorSocket->socket};
+        n = getN(socketN, 3);
       }
       if(heartbeatsSinceLastReply > 3){
         if(mode == 1)
