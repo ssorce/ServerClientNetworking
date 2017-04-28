@@ -239,8 +239,7 @@ int main(int argc, char *argv[])
         break;
       tv = tv2;
     }
-    if (clientConnected == 0 && FD_ISSET(clientAcceptor->socket, &readfds))
-    {
+    if (clientConnected == 0 && FD_ISSET(clientAcceptor->socket, &readfds)){
       clientProxy = getClient(clientAcceptor);
       clientConnected = 1;
       int socketN[] = {telnetSocket->socket, clientProxy->socket};

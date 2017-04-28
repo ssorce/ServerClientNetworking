@@ -214,7 +214,7 @@ int main(int argc, char *argv[]) {
         if(result <= 0)
           break;
       }
-      if(heartbeatsSinceLastReply > 6){
+      if(heartbeatsSinceLastReply > 3){
         if(mode == 1)
           printf("Attempting reconnect\n");
         cpClose(sproxySocket);
