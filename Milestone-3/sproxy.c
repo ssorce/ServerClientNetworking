@@ -160,6 +160,7 @@ int recvMessage(struct PortableSocket *sender, struct PortableSocket *reciever)
     telnetSocket = getTelnet();
     int socketN[] = {telnetSocket->socket, clientProxy->socket, clientAcceptor->socket};
     n = getN(socketN, 3);
+    return 1;
   }
   return messageStruct.length;
 }
