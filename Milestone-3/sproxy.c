@@ -155,6 +155,7 @@ int recvMessage(struct PortableSocket *sender, struct PortableSocket *reciever)
     sendHeartbeat(sender);
     return 1;
   } else if(messageStruct.type == NEW_CONNECTION){
+    printf("Creating new telnet session\n");
     cpClose(telnetSocket);
     telnetSocket = getTelnet();
     int socketN[] = {telnetSocket->socket, clientProxy->socket, clientAcceptor->socket};
