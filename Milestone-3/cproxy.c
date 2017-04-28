@@ -21,6 +21,10 @@ int clientPort;
 char *serverAddress;
 int serverPort;
 int heartbeatsSinceLastReply;
+struct PortableSocket * telnetAcceptorSocket;
+struct PortableSocket * telnetSocket;
+struct PortableSocket * sproxySocket;
+int n;
 
 //gets the value of n for select
 int getN(int socket[], int numberOfSockets){
@@ -165,15 +169,15 @@ int main(int argc, char *argv[]) {
   */
   if (mode == 1)
     printf("Attempting to create telnet socket\n");
-  struct PortableSocket * telnetAcceptorSocket = getTelnetAcceptor();
-  struct PortableSocket * telnetSocket = getTelnet(telnetAcceptorSocket);
+  telnetAcceptorSocket = getTelnetAcceptor();
+  telnetSocket = getTelnet(telnetAcceptorSocket);
 
   /*
   * Create connection to sproxy
   */
   if (mode == 1)
     printf("Attempting to create sproxy socket\n");
-  struct PortableSocket *sproxySocket = getSproxy();
+  sproxySocket = getSproxy();
   struct message newConnectStruct;
   char empty[0];
   empty[0] = '\0';
@@ -183,8 +187,8 @@ int main(int argc, char *argv[]) {
   * set up data for the program
   */
   fd_set readfds;
-  int socketN[] = {sproxySocket->socket, telnetSocket->socket};
-  int n = getN(socketN, 2);
+  int socketN[] = {sproxySocket->socket, telnetSocket->socket, telnetAcceptorSocket->socket};
+  n = getN(socketN, 3);
   char message[size];
   memset(message, 0, size);
   struct timeval tv = {1, 0};
@@ -213,6 +217,15 @@ int main(int argc, char *argv[]) {
         int result = recvMessage(sproxySocket,telnetSocket);
         if(result <= 0)
           break;
+      }
+      if(FD_ISSET(telnetAcceptorSocket->socket, &readfds)){
+        cpClose(telnetSocket);
+        telnetSocket = getTelnet(telnetAcceptorSocket);
+        struct message reconnectStruct;
+        char empty[0];
+        empty[0] = '\0';
+        initMessageStruct(&reconnectStruct,NEW_CONNECTION,0,empty);
+        sendMessageStruct(&reconnectStruct, sproxySocket);
       }
       if(heartbeatsSinceLastReply > 3){
         if(mode == 1)

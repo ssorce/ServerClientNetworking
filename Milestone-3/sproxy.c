@@ -19,76 +19,23 @@ int mode = 0;
 int selectValue = 0;
 int serverPort = 0;
 int clientConnected = 0;
+int n = 0;
 
-// resets the select method, to be used again
-void reset(fd_set *readfds, int telnetSocket, int clientSocket, int clientAcceptor)
-{
-  FD_CLR(telnetSocket, readfds);
-  if (clientConnected == 1)
-    FD_CLR(clientSocket, readfds);
-  else
-    FD_CLR(clientAcceptor, readfds);
-  FD_ZERO(readfds);
-  if (clientConnected == 1)
-    FD_SET(clientSocket, readfds);
-  else
-    FD_SET(clientAcceptor, readfds);
-  FD_SET(telnetSocket, readfds);
-}
+struct PortableSocket *clientAcceptor;
+struct PortableSocket *clientProxy;
+struct PortableSocket *telnetSocket;
 
-//forwards a message from the sender socket to the reciever socket
-int forward(struct PortableSocket *sender, struct PortableSocket *reciever, char *message, char *senderName)
+//gets the value of n for select
+int getN(int socket[], int numberOfSockets)
 {
-  // print "recieved from telnet 'message' sending to sproxy"
-  int messageSize = cpRecv(sender, message, size);
-  if (cpCheckError(sender) != 0)
-    return -1;
-  if (mode == 1)
-    printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
-  if (clientConnected == 1) {
-    struct message messageStruct;
-    initMessageStruct(&messageStruct,MESSAGE,messageSize,message);
-    sendMessageStruct(&messageStruct,reciever);
+  int max = -1;
+  int i = 0;
+  for (i = 0; i < numberOfSockets; i++)
+  {
+    if (socket[i] > max)
+      max = socket[i];
   }
-  memset(message, 0, messageSize);
-  return messageSize;
-}
-
-//forwards a message from the sender socket to the reciever socket
-int sendMessage(struct PortableSocket *reciever, char *message, int messageSize)
-{
-  if (mode == 1)
-    printf("Sending '%s' to telnet\n", message);
-  cpSend(reciever, message, messageSize);
-  memset(message, 0, size);
-  return 0;
-}
-
-void sendHeartbeat(struct PortableSocket *reciever)
-{
-  struct message messageStruct;
-  char empty[0];
-  empty[0] = '\0';
-  initMessageStruct(&messageStruct,HEARTBEAT,0,empty);
-  sendMessageStruct(&messageStruct,reciever);
-}
-
-int recvMessage(struct PortableSocket *sender, struct PortableSocket *reciever)
-{
-  struct message messageStruct;
-  char message[size];
-  messageStruct.payload = message;
-  recvMessageStruct(&messageStruct, sender);
-  if (mode == 1)
-    printf("Recived message %s of type = %d\n", messageStruct.payload, messageStruct.type);
-  if (messageStruct.type == MESSAGE){
-    sendMessage(reciever,messageStruct.payload,messageStruct.length);
-  }
-  else if (messageStruct.type == HEARTBEAT){
-    sendHeartbeat(sender);
-    return 1;
-  }
-  return messageStruct.length;
+  return max + 1;
 }
 
 //gets the clientAcceptor socket
@@ -143,17 +90,77 @@ struct PortableSocket *getTelnet()
   return telnetSocket;
 }
 
-//gets the value of n for select
-int getN(int socket[], int numberOfSockets)
+// resets the select method, to be used again
+void reset(fd_set *readfds, int telnetSocket, int clientSocket, int clientAcceptor)
 {
-  int max = -1;
-  int i = 0;
-  for (i = 0; i < numberOfSockets; i++)
-  {
-    if (socket[i] > max)
-      max = socket[i];
+  FD_CLR(telnetSocket, readfds);
+  if (clientConnected == 1)
+    FD_CLR(clientSocket, readfds);
+  FD_CLR(clientAcceptor, readfds);
+  FD_ZERO(readfds);
+  if (clientConnected == 1)
+    FD_SET(clientSocket, readfds);
+  FD_SET(clientAcceptor, readfds);
+  FD_SET(telnetSocket, readfds);
+}
+
+//forwards a message from the sender socket to the reciever socket
+int forward(struct PortableSocket *sender, struct PortableSocket *reciever, char *message, char *senderName)
+{
+  // print "recieved from telnet 'message' sending to sproxy"
+  int messageSize = cpRecv(sender, message, size);
+  if (cpCheckError(sender) != 0)
+    return -1;
+  if (mode == 1)
+    printf("Recieved %d bytes from %s: %s\n", messageSize, senderName, message);
+  if (clientConnected == 1) {
+    struct message messageStruct;
+    initMessageStruct(&messageStruct,MESSAGE,messageSize,message);
+    sendMessageStruct(&messageStruct,reciever);
   }
-  return max + 1;
+  memset(message, 0, messageSize);
+  return messageSize;
+}
+
+//forwards a message from the sender socket to the reciever socket
+int sendMessage(struct PortableSocket *reciever, char *message, int messageSize)
+{
+  if (mode == 1)
+    printf("Sending '%s' to telnet\n", message);
+  cpSend(reciever, message, messageSize);
+  memset(message, 0, size);
+  return 0;
+}
+
+void sendHeartbeat(struct PortableSocket *reciever)
+{
+  struct message messageStruct;
+  char empty[0];
+  empty[0] = '\0';
+  initMessageStruct(&messageStruct,HEARTBEAT,0,empty);
+  sendMessageStruct(&messageStruct,reciever);
+}
+
+int recvMessage(struct PortableSocket *sender, struct PortableSocket *reciever)
+{
+  struct message messageStruct;
+  char message[size];
+  messageStruct.payload = message;
+  recvMessageStruct(&messageStruct, sender);
+  if (mode == 1)
+    printf("Recived message %s of type = %d\n", messageStruct.payload, messageStruct.type);
+  if (messageStruct.type == MESSAGE){
+    sendMessage(reciever,messageStruct.payload,messageStruct.length);
+  } else if (messageStruct.type == HEARTBEAT){
+    sendHeartbeat(sender);
+    return 1;
+  } else if(messageStruct.type == NEW_CONNECTION){
+    cpClose(telnetSocket);
+    telnetSocket = getTelnet();
+    int socketN[] = {telnetSocket->socket, clientProxy->socket, clientAcceptor->socket};
+    n = getN(socketN, 3);
+  }
+  return messageStruct.length;
 }
 
 //parses the input
@@ -189,8 +196,8 @@ int main(int argc, char *argv[])
   */
   if (mode == 1)
     printf("connecting: client\n");
-  struct PortableSocket *clientAcceptor = getClientAcceptor(serverPort);
-  struct PortableSocket *clientProxy = getClient(clientAcceptor);
+  clientAcceptor = getClientAcceptor(serverPort);
+  clientProxy = getClient(clientAcceptor);
 
   /*
   * Connection to the local telnet
@@ -201,14 +208,14 @@ int main(int argc, char *argv[])
   char empty[1024];
   firstConnect.payload = empty;
   recvMessageStruct(&firstConnect, clientProxy);
-  struct PortableSocket * telnetSocket = getTelnet();
+  telnetSocket = getTelnet();
 
   /*
   * set up data for program
   */
   fd_set readfds;
-  int socketN[] = {clientProxy->socket, telnetSocket->socket};
-  int n = getN(socketN, 2);
+  int socketN[] = {clientProxy->socket, telnetSocket->socket, clientAcceptor->socket};
+  n = getN(socketN, 3);
   char message[size];
   memset(message, 0, size);
   struct timeval tv = {3, 0};
@@ -239,11 +246,11 @@ int main(int argc, char *argv[])
         break;
       tv = tv2;
     }
-    if (clientConnected == 0 && FD_ISSET(clientAcceptor->socket, &readfds)){
+    if (FD_ISSET(clientAcceptor->socket, &readfds)){
       clientProxy = getClient(clientAcceptor);
       clientConnected = 1;
-      int socketN[] = {telnetSocket->socket, clientProxy->socket};
-      n = getN(socketN, 2);
+      int socketN[] = {telnetSocket->socket, clientProxy->socket, clientAcceptor->socket};
+      n = getN(socketN, 3);
       if (mode == 1) {
         printf("established new connection with client\n");
       }
@@ -253,7 +260,7 @@ int main(int argc, char *argv[])
       recvMessageStruct(&messageStruct, clientProxy);
       if(messageStruct.type == NEW_CONNECTION){
         cpClose(telnetSocket);
-        struct PortableSocket *telnetSocket = getTelnet();
+        telnetSocket = getTelnet();
         int socketN[] = {telnetSocket->socket, clientProxy->socket};
         n = getN(socketN, 2);
       }
