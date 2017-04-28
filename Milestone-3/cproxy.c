@@ -237,7 +237,6 @@ int main(int argc, char *argv[]) {
           printf("Attempting reconnect\n");
         cpClose(sproxySocket);
         sproxySocket = getSproxy();
-        struct PortableSocket *sproxySocket = getSproxy();
         struct message reconnectStruct;
         char empty[0];
         empty[0] = '\0';
